@@ -1,0 +1,6 @@
+/bin
+/src
+/test
+/.gitignore
+/.npmignore
+/Makefile

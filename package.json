@@ -1,0 +1,46 @@
+{
+  "name": "react-inline",
+  "version": "0.0.0",
+  "description": "Inline styles for React components with a transformer to extract them into a CSS bundle.",
+  "main": ".",
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/martinandert/react-inline"
+  },
+  "keywords": [
+    "react",
+    "style",
+    "styles",
+    "stylesheet",
+    "inline",
+    "bundle",
+    "extract",
+    "css"
+  ],
+  "author": "Martin Andert",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/martinandert/react-inline/issues"
+  },
+  "homepage": "https://github.com/martinandert/react-inline",
+  "dependencies": {
+    "babel-runtime": "^4.7.16",
+    "clean-css": "^3.1.8",
+    "mkdirp": "^0.5.0",
+    "recast": "^0.10.11"
+  },
+  "peerDependencies": {
+    "classnames": "^1.2.0",
+    "react": "^0.13.1"
+  },
+  "devDependencies": {
+    "babel-core": "^4.7.16",
+    "classnames": "^1.2.0",
+    "commoner": "martinandert/commoner#ignores",
+    "mocha": "^2.2.1",
+    "react": "^0.13.1"
+  }
+}
