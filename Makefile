@@ -1,8 +1,8 @@
 BIN = ./node_modules/.bin
-COMMONIZE_OPTIONS = --relativize --follow-requires --ignore-dependencies --ignore-node-core --cache-dir tmp/cache/commoner src/ lib/ StyleSheet InlineStylesExtractor
+COMMONIZE_OPTIONS = --relativize --follow-requires --ignore-dependencies --ignore-node-core --cache-dir tmp/cache/commoner src/ lib/ StyleSheet Extractor Bundler
 
 test: lint commonize
-	@$(BIN)/mocha -t 5000 -b -R spec test/spec.js
+	@$(BIN)/mocha --compilers js:babel/register -t 5000 -b -R spec test/spec.js
 
 lint:
 	@true
