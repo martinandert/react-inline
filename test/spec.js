@@ -1,7 +1,5 @@
 import assert    from 'assert';
 import util      from 'util';
-import fixtures  from './fixtures';
-import helpers   from './helpers';
 import Extractor from '../extractor';
 
 describe('Extractor.transform', () => {
@@ -440,15 +438,20 @@ describe('Extractor.transform', () => {
 
 describe('Extractor.transformObjectExpressionIntoStyleSheetObject', () => {
   var transform = Extractor.transformObjectExpressionIntoStyleSheetObject;
+  var recast = require('recast');
+
+  function makeObjectExpression(source) {
+    return recast.parse('var expr = ' + source).program.body[0].declarations[0].init;
+  }
 
   function testValidInput(input, expected) {
-    var expr = helpers.makeObjectExpression(input);
+    var expr = makeObjectExpression(input);
 
     assert.deepEqual(transform(expr), expected);
   }
 
   function testInvalidInput(input, message) {
-    var expr = helpers.makeObjectExpression(input);
+    var expr = makeObjectExpression(input);
 
     assert.throws(() => {
       transform(expr);
