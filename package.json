@@ -42,7 +42,8 @@
   },
   "peerDependencies": {
     "classnames": "^1.2.0",
-    "react": "^0.13.1"
+    "react": "^0.13.1",
+    "babel-runtime": "^5.0.8"
   },
   "devDependencies": {
     "babel": "^5.0.8",
