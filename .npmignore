@@ -3,5 +3,6 @@
 /bin/build
 /example
 /src
+/tmp
 /test
 /Makefile
