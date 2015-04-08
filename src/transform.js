@@ -17,8 +17,9 @@ const types = recast.types;
 const n     = types.namedTypes;
 const b     = types.builders;
 
-const hasStyleSheetCreateCall = /\bStyleSheet\.create\b/;
-const postlude = '\n\nvar __cx = require("classnames");\nvar __assign = require("react/lib/Object.assign");\n';
+const hasStyleSheetCreateCall = /\bStyleSheet\s*\.\s*create\b/;
+const hasCx = /__cx\(/;
+const hasAssign = /__assign\(/;
 
 export default function transform(source, options = {}) {
   if (hasStyleSheetCreateCall.test(source)) {
@@ -32,10 +33,17 @@ export default function transform(source, options = {}) {
     ast = transformDefs(ast, stylesheets, options);
     ast = transformUses(ast, stylesheets, options);
 
-    return {
-      code: recast.print(ast).code + postlude,
-      css:  buildCSS(stylesheets, options)
-    };
+    let code = recast.print(ast).code;
+
+    if (hasCx.test(code)) {
+      code += '\n\nvar __cx = require("classnames");';
+    }
+
+    if (hasAssign.test(code)) {
+      code += '\n\nvar __assign = require("react/lib/Object.assign");';
+    }
+
+    return { code: code, css: buildCSS(stylesheets, options) };
   }
 
   return { code: source };

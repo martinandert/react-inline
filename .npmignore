@@ -1,7 +1,7 @@
 /.gitignore
 /.npmignore
-/.react-inline
-/bin/commonize
+/bin/build
+/example
 /src
 /test
 /Makefile

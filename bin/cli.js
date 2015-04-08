@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-'use strict';
+process.title = 'react-inline-extract';
 
 var merge     = require('object-assign');
 var babel     = require('babel-core');

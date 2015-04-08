@@ -5,27 +5,436 @@ import helpers   from './helpers';
 import Extractor from '../extractor';
 
 describe('Extractor.transform', () => {
-  var transform = Extractor.transform;
-  var babel = require('babel');
+  const transform = Extractor.transform;
+  const babel = require('babel');
 
   function makeOptions(options) {
     return Object.assign({}, { id: 'test' }, options);
   }
 
-  function testTransform(input, expected, options = {}) {
-    var output = transform(babel.transform(input).code, makeOptions(options)).code;
+  function babelize(source) {
+    return babel.transform(source).code
+  }
 
-    assert.equal(babel.transform(expected).code, output);
+  function squish(str) {
+    return str.replace(/^\s+/, '').replace(/\s+$/, '').replace(/\s+/g, ' ');
+  }
+
+  function testTransformed(spec) {
+    const source  = babelize(spec.from);
+    const options = makeOptions(spec.options);
+
+    const result    = transform(source, options)
+    const actual    = squish(result.code);
+    const expected  = squish(babelize(spec.to));
+
+    assert.equal(actual, expected);
+
+    return result.css;
+  }
+
+  function testStyleRule(css, className, rule) {
+    assert(css);
+
+    const hasClassNameWithRule = new RegExp(`\\.${className}\\s*\\{[^\\}]*?${rule}`);
+
+    assert(hasClassNameWithRule.test(css));
   }
 
   it('does nothing if no "StyleSheet.create" call is present', () => {
-    testTransform(`
-      var c = (<div style={styles.foo}/>);
-      var styles = { foo: { border: 0 } };
-    `, `
-      var c = (<div style={styles.foo}/>);
-      var styles = { foo: { border: 0 } };
-    `);
+    testTransformed({
+      from: `
+        <div style={styles.foo} />;
+
+        var styles = { foo: { margin: 0 } };
+      `,
+      to: `
+        <div style={styles.foo} />;
+
+        var styles = { foo: { margin: 0 } };
+      `
+    });
+  });
+
+  it('converts style prop into className prop', () => {
+    const css = testTransformed({
+      from: `
+        <div style={styles.foo} />;
+
+        var styles = StyleSheet.create({ foo: { margin: 0 } });
+      `,
+      to: `
+        <div className="test-styles-foo" />;
+
+        var styles = StyleSheet.create({ foo: { margin: 0 } });
+      `
+    });
+
+    testStyleRule(css, 'test-styles-foo', 'margin: 0');
+  });
+
+  it('preserves other props', () => {
+    const css = testTransformed({
+      from: `
+        <div ref="x" style={styles.foo} lang="en" />;
+
+        var styles = StyleSheet.create({ foo: { margin: 0 } });
+      `,
+      to: `
+        <div ref="x" lang="en" className="test-styles-foo" />;
+
+        var styles = StyleSheet.create({ foo: { margin: 0 } });
+      `
+    });
+
+    testStyleRule(css, 'test-styles-foo', 'margin: 0');
+  });
+
+  it('appends converted style prop to existing className with string value', () => {
+    const css = testTransformed({
+      from: `
+        <div className="baz" style={styles.foo} />;
+
+        var styles = StyleSheet.create({ foo: { margin: 0 } });
+      `,
+      to: `
+        <div className={__cx("baz", "test-styles-foo")} />;
+
+        var styles = StyleSheet.create({ foo: { margin: 0 } });
+
+        var __cx = require("classnames");
+      `
+    });
+
+    testStyleRule(css, 'test-styles-foo', 'margin: 0');
+  });
+
+  it('appends converted style prop to existing className with identifier value', () => {
+    const css = testTransformed({
+      from: `
+        <div className={baz} style={styles.foo} />;
+
+        var styles = StyleSheet.create({ foo: { margin: 0 } });
+      `,
+      to: `
+        <div className={__cx(baz, "test-styles-foo")} />;
+
+        var styles = StyleSheet.create({ foo: { margin: 0 } });
+
+        var __cx = require("classnames");
+      `
+    });
+
+    testStyleRule(css, 'test-styles-foo', 'margin: 0');
+  });
+
+  it('appends converted style prop to existing className with function call value', () => {
+    const css = testTransformed({
+      from: `
+        <div className={baz(42)} style={styles.foo} />;
+
+        var styles = StyleSheet.create({ foo: { margin: 0 } });
+      `,
+      to: `
+        <div className={__cx(baz(42), "test-styles-foo")} />;
+
+        var styles = StyleSheet.create({ foo: { margin: 0 } });
+
+        var __cx = require("classnames");
+      `
+    });
+
+    testStyleRule(css, 'test-styles-foo', 'margin: 0');
+  });
+
+  describe('with style prop having an array as value', () => {
+    it('converts style prop elements to className prop', () => {
+      const css = testTransformed({
+        from: `
+          <div style={ [styles.foo, styles.bar] } />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+        `,
+        to: `
+          <div className={__cx("test-styles-foo", "test-styles-bar")} />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+
+          var __cx = require("classnames");
+        `
+      });
+
+      testStyleRule(css, 'test-styles-foo', 'margin: 0');
+      testStyleRule(css, 'test-styles-bar', 'padding: 0');
+    });
+
+    it('appends converted style prop elements to existing className with string value', () => {
+      const css = testTransformed({
+        from: `
+          <div className="baz" style={ [styles.foo, styles.bar] } />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+        `,
+        to: `
+          <div className={__cx("baz", "test-styles-foo", "test-styles-bar")} />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+
+          var __cx = require("classnames");
+        `
+      });
+
+      testStyleRule(css, 'test-styles-foo', 'margin: 0');
+      testStyleRule(css, 'test-styles-bar', 'padding: 0');
+    });
+
+    it('appends converted style prop elements to existing className with identifier value', () => {
+      const css = testTransformed({
+        from: `
+          <div className={baz} style={ [styles.foo, styles.bar] } />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+        `,
+        to: `
+          <div className={__cx(baz, "test-styles-foo", "test-styles-bar")} />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+
+          var __cx = require("classnames");
+        `
+      });
+
+      testStyleRule(css, 'test-styles-foo', 'margin: 0');
+      testStyleRule(css, 'test-styles-bar', 'padding: 0');
+    });
+
+    it('appends converted style prop elements to existing className with function call value', () => {
+      const css = testTransformed({
+        from: `
+          <div className={baz(42)} style={ [styles.foo, styles.bar] } />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+        `,
+        to: `
+          <div className={__cx(baz(42), "test-styles-foo", "test-styles-bar")} />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+
+          var __cx = require("classnames");
+        `
+      });
+
+      testStyleRule(css, 'test-styles-foo', 'margin: 0');
+      testStyleRule(css, 'test-styles-bar', 'padding: 0');
+    });
+
+    it('properly handles a hash-typed style prop element', () => {
+      const css = testTransformed({
+        from: `
+          <div className={baz(42)} style={ [styles.foo, styles.bar, { boo: 0 }] } />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+        `,
+        to: `
+          <div className={__cx(baz(42), "test-styles-foo", "test-styles-bar")} style={{ boo: 0 }} />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+
+          var __cx = require("classnames");
+        `
+      });
+
+      testStyleRule(css, 'test-styles-foo', 'margin: 0');
+      testStyleRule(css, 'test-styles-bar', 'padding: 0');
+    });
+
+    it('properly handles a identifier-typed style prop element', () => {
+      const css = testTransformed({
+        from: `
+          <div className={baz(42)} style={ [styles.foo, styles.bar, boo] } />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+        `,
+        to: `
+          <div className={__cx(baz(42), "test-styles-foo", "test-styles-bar")} style={boo} />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+
+          var __cx = require("classnames");
+        `
+      });
+
+      testStyleRule(css, 'test-styles-foo', 'margin: 0');
+      testStyleRule(css, 'test-styles-bar', 'padding: 0');
+    });
+
+    it('properly handles multiple other style prop elements', () => {
+      const css = testTransformed({
+        from: `
+          <div className={baz(42)} style={ [styles.foo, styles.bar, bam, { boo: 0 }] } />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+        `,
+        to: `
+          <div className={__cx(baz(42), "test-styles-foo", "test-styles-bar")} style={__assign({}, bam, { boo: 0 })} />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+
+          var __cx = require("classnames");
+          var __assign = require("react/lib/Object.assign");
+        `
+      });
+
+      testStyleRule(css, 'test-styles-foo', 'margin: 0');
+      testStyleRule(css, 'test-styles-bar', 'padding: 0');
+    });
+  });
+
+  describe('with multiple stylesheets', () => {
+    it('places class names in order of appearance', () => {
+      const css = testTransformed({
+        from: `
+          <div className="baz" style={ [styles1.foo, styles2.xyz, styles1.bar, bam] } />;
+
+          var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+          var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
+        `,
+        to: `
+          <div className={__cx("baz", "test-styles1-foo", "test-styles2-xyz", "test-styles1-bar")} style={bam} />;
+
+          var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+          var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
+
+          var __cx = require("classnames");
+        `
+      });
+
+      testStyleRule(css, 'test-styles1-foo', 'margin: 0');
+      testStyleRule(css, 'test-styles1-bar', 'padding: 0');
+      testStyleRule(css, 'test-styles2-xyz', 'padding: 10');
+    });
+  });
+
+  describe('with compressClassNames option set to true', () => {
+    var {clearCache} = require('../lib/compressClassName');
+
+    beforeEach(() => {
+      clearCache();
+    });
+
+    it('compresses class names', () => {
+      const css = testTransformed({
+        from: `
+          <div className="baz" style={ [styles1.foo, styles2.xyz, styles1.bar, bam] } />;
+
+          var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+          var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
+        `,
+        to: `
+          <div className={__cx("baz", "_0", "_1", "_2")} style={bam} />;
+
+          var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+          var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
+
+          var __cx = require("classnames");
+        `,
+        options: {
+          compressClassNames: true
+        }
+      });
+
+      testStyleRule(css, '_0', 'margin: 0');
+      testStyleRule(css, '_2', 'padding: 0');
+      testStyleRule(css, '_1', 'padding: 10');
+    });
+  });
+
+  describe('with vendorPrefixes option set to true', () => {
+    it('adds vendor prefixes', () => {
+      const css = testTransformed({
+        from: `
+          <div style={styles.foo} />;
+
+          var styles = StyleSheet.create({ foo: { flex: 1 } });
+        `,
+        to: `
+          <div className="test-styles-foo" />;
+
+          var styles = StyleSheet.create({ foo: { flex: 1 } });
+        `,
+        options: {
+          vendorPrefixes: true
+        }
+      });
+
+      testStyleRule(css, 'test-styles-foo', 'flex: 1');
+      testStyleRule(css, 'test-styles-foo', '-webkit-flex: 1');
+      testStyleRule(css, 'test-styles-foo', '-ms-flex: 1');
+    });
+  });
+
+  describe('with minify option set to true', () => {
+    it('minifies css', () => {
+      const css = testTransformed({
+        from: `
+          <div style={ [styles.foo, styles.bar] } />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+        `,
+        to: `
+          <div className={__cx("test-styles-foo", "test-styles-bar")} />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+
+          var __cx = require("classnames");
+        `,
+        options: {
+          minify: true
+        }
+      });
+
+      assert.equal(css, '.test-styles-foo{margin:0}.test-styles-bar{padding:0}');
+    });
+  });
+
+  describe('with removeStyleSheetDefinitions option set to true', () => {
+    it('removes stylesheet definitions', () => {
+      const css = testTransformed({
+        from: `
+          <div style={styles.foo} />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 } });
+        `,
+        to: `
+          <div className="test-styles-foo" />;
+        `,
+        options: {
+          removeStyleSheetDefinitions: true
+        }
+      });
+    });
+  });
+
+  describe('with id option provided', () => {
+    it('respects id when generating class names', () => {
+      const css = testTransformed({
+        from: `
+          <div style={styles.foo} />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 } });
+        `,
+        to: `
+          <div className="x_y-styles-foo" />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 } });
+        `,
+        options: {
+          id: 'x/y'
+        }
+      });
+
+      testStyleRule(css, 'x_y-styles-foo', 'margin: 0');
+    });
   });
 });
 
@@ -35,7 +444,7 @@ describe('Extractor.transformObjectExpressionIntoStyleSheetObject', () => {
   function testValidInput(input, expected) {
     var expr = helpers.makeObjectExpression(input);
 
-    assert.deepEqual(expected, transform(expr));
+    assert.deepEqual(transform(expr), expected);
   }
 
   function testInvalidInput(input, message) {
@@ -126,7 +535,7 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
   var transform = Extractor.transformStyleSheetObjectIntoSpecification;
 
   function testValidInput(input, expected) {
-    assert.deepEqual(expected, transform(input));
+    assert.deepEqual(transform(input), expected);
   }
 
   function testInvalidInput(input, message) {
@@ -730,7 +1139,7 @@ describe('Extractor.transformSpecificationIntoCSS', () => {
   var transform = Extractor.transformSpecificationIntoCSS;
 
   function testCSS(spec, expected, options) {
-    assert.equal(expected, transform(spec, options));
+    assert.equal(transform(spec, options), expected);
   }
 
   function css(str) {
@@ -940,45 +1349,3 @@ describe('Extractor.transformSpecificationIntoCSS', () => {
     assert(uncompressed.length > compressed.length);
   });
 });
-
-// describe('The InlineStylesExtractor', function() {
-//   beforeEach(function() {
-//     Extractor.reset();
-//   });
-
-//   it('passes its first test', function() {
-//     var source = 'React.createElement("div", { className: "a-class", style: [myStyles.div, { margin: 30 }] }); var myStyles = StyleSheet.create({ div: { padding: 15 } });';
-
-//     var actual   = Extractor.transform("path/to/foo.js", source);
-//     var expected = 'React.createElement("div", { className: __cx("a-class", "path_to_foo_js__myStyles__div__1"), style: { margin: 30 } });\nvar __cx = require("classnames");\nvar __assign = require("react/lib/Object.assign");\n';
-
-//     assert.equal(expected, actual);
-
-//     actual   = Extractor.emitBundle();
-//     expected = '/************ path/to/foo.js -> myStyles ************/\n\n.path_to_foo_js__myStyles__div__1 {\n  padding: 15px;\n}\n\n';
-
-//     assert.equal(expected, actual);
-
-//     actual    = Extractor.emitBundle({ minify: true });
-//     expected  = '.path_to_foo_js__myStyles__div__1{padding:15px}';
-
-//     assert.equal(expected, actual);
-
-//     actual    = Extractor.emitBundle({ minify: true, compressClassNames: true });
-//     expected  = '._1{padding:15px}';
-
-//     assert.equal(expected, actual);
-//   });
-
-//   it('passes its second test', function() {
-//     var result = Extractor.transform(fixtures.one.id, fixtures.one.source);
-
-//     assert.equal(fixtures.one.transformed, result);
-//   });
-
-//   it('passes its third test', function() {
-//     var result = Extractor.transform(fixtures.one.id, fixtures.one.source, { compressClassNames: true });
-
-//     assert.equal(fixtures.one.transformedAndCompressed, result);
-//   });
-// });

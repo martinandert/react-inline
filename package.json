@@ -27,7 +27,7 @@
   },
   "main": "react-inline.js",
   "bin": {
-    "react-inline-extract": "./bin/react-inline-extract"
+    "react-inline-extract": "./bin/cli.js"
   },
   "dependencies": {
     "autoprefixer-core": "^5.1.8",

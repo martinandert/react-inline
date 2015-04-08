@@ -1,23 +1,20 @@
 BIN = ./node_modules/.bin
 COMMONIZE_OPTIONS = --relativize --follow-requires --ignore-dependencies --ignore-node-core --cache-dir tmp/cache/commoner src/ lib/ StyleSheet Extractor Bundler
 
-test: lint commonize
-	@$(BIN)/mocha --compilers js:babel/register -t 5000 -b -R spec test/spec.js
+build: node_modules/
+	@bin/build $(COMMONIZE_OPTIONS)
+
+watch: node_modules/
+	@bin/build --watch $(COMMONIZE_OPTIONS)
 
 lint:
 	@true
 
-commonize: node_modules/
-	@bin/commonize $(COMMONIZE_OPTIONS)
-
-lib/: node_modules/
-	@bin/commonize $(COMMONIZE_OPTIONS)
+test: lint build
+	@$(BIN)/mocha --compilers js:babel/register -t 5000 -b -R spec test/spec.js
 
 node_modules/:
 	@npm install
-
-watch:
-	@bin/commonize --watch $(COMMONIZE_OPTIONS)
 
 clean:
 	@rm -rf lib/ tmp/cache/commoner/
@@ -42,4 +39,4 @@ define release
 	npm version $(1) -m 'release v%s'
 endef
 
-.PHONY: test lint commonize watch clean distclean release-patch release-minor release-major publish
+.PHONY: build watch lint test clean distclean release-patch release-minor release-major publish
