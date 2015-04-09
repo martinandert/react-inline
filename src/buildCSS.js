@@ -12,11 +12,15 @@ export default function(stylesheets, options) {
 
   objEach(stylesheets, (name, stylesheet) => {
     let cssOptions = Object.assign({}, options);
-    cssOptions.prefixes = cssOptions.prefixes.concat(name);
+    cssOptions.prefixes = [options.filename, name];
 
     css += transformSpecificationIntoCSS(stylesheet, cssOptions);
     css += '\n';
   });
+
+  if (css.length === 0) {
+    return null;
+  }
 
   const vp = options.vendorPrefixes;
 

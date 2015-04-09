@@ -16,7 +16,7 @@ function collectMediaMap(item, memo) {
 
 require('commoner')
   .version(info.version)
-  .option('-a, --no-babel', 'Skip the Babel preprocessing step')
+  .option('-a, --no-babel', 'Skip the Babel transformation step')
   .option('-s, --babel-stage <stage>', 'Set Babel\'s experimental proposal stage (default: 2)', 2)
   .option('-p, --vendor-prefixes', 'Add vendor prefixes to generated CSS')
   .option('-o, --compress-class-names', 'Compress class names in generated CSS')
@@ -49,6 +49,12 @@ require('commoner')
     function(id, source) {
       var options = this.options;
 
+      var extractOptions = merge({}, options, {
+        filename: id, cacheDir: this.cacheDir
+      });
+
+      var result = extractor.transform(source, extractOptions);
+
       if (options.babel) {
         var babelOptions = {
           ast: false,
@@ -56,14 +62,8 @@ require('commoner')
           stage: options.babelStage
         };
 
-        source = babel.transform(source, babelOptions).code;
+        result.code = babel.transform(result.code, babelOptions).code;
       }
-
-      var extractOptions = merge({}, options, {
-        id: id, cacheDir: this.cacheDir
-      });
-
-      var result = extractor.transform(source, extractOptions);
 
       if (result.css) {
         return { '.js':  result.code, '.css': result.css }

@@ -1,6 +1,3 @@
-// const React = require('react');
-// const StyleSheet = require('react-inline');
-
 import React from 'react';
 import StyleSheet from 'react-inline';
 

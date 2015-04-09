@@ -37,8 +37,7 @@
     "commoner": "martinandert/commoner#react-inline",
     "glob": "^5.0.3",
     "mkdirp": "^0.5.0",
-    "object-assign": "^2.0.0",
-    "recast": "^0.10.11"
+    "object-assign": "^2.0.0"
   },
   "peerDependencies": {
     "classnames": "^1.2.0",

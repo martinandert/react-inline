@@ -8,7 +8,7 @@ import { Transformer, types as t } from 'babel-core';
 import transformObjectExpressionIntoStyleSheetObject from 'transformObjectExpressionIntoStyleSheetObject';
 import transformStyleSheetObjectIntoSpecification from 'transformStyleSheetObjectIntoSpecification';
 
-export default function(stylesheets, options) {
+export default function(stylesheets, options = {}) {
   return new Transformer('react-inline-defs', {
     CallExpression(node, parent) {
       var callee = node.callee;

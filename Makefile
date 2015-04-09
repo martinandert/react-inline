@@ -1,11 +1,11 @@
 BIN = ./node_modules/.bin
-COMMONIZE_OPTIONS = --relativize --follow-requires --ignore-dependencies --ignore-node-core --cache-dir tmp/cache/commoner
+BUILD_OPTIONS = --relativize --follow-requires --ignore-dependencies --ignore-node-core --cache-dir tmp/cache/build
 
 build: node_modules/
-	@bin/build $(COMMONIZE_OPTIONS) src/ lib/ StyleSheet Transformer Extractor Bundler
+	@bin/build $(BUILD_OPTIONS) src/ lib/ StyleSheet Extractor Bundler
 
 watch: node_modules/
-	@bin/build $(COMMONIZE_OPTIONS) --watch src/ lib/ StyleSheet Transformer Extractor Bundler
+	@bin/build $(BUILD_OPTIONS) --watch src/ lib/ StyleSheet Extractor Bundler
 
 lint:
 	@true
@@ -17,7 +17,7 @@ node_modules/:
 	@npm install
 
 clean:
-	@rm -rf lib/ tmp/cache/commoner/
+	@rm -rf lib/ tmp/cache/build/
 
 distclean: clean
 	@rm -rf tmp/ node_modules/
