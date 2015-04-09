@@ -3,13 +3,12 @@
  */
 
 import assert from 'assert';
-import recast from 'recast';
+import { types as t } from 'babel-core';
 
-const n = recast.types.namedTypes;
 const isBlank = /^\s*$/;
 
 export default function transformObjectExpressionIntoStyleSheetObject(expr) {
-  assert(n.ObjectExpression.check(expr), 'must be a object expression');
+  assert(t.isObjectExpression(expr), 'must be a object expression');
 
   let result = {};
 
@@ -23,7 +22,7 @@ export default function transformObjectExpressionIntoStyleSheetObject(expr) {
 function processTopLevelProperty(key, value, result) {
   const name = keyToName(key);
 
-  assert(n.ObjectExpression.check(value), 'top-level value must be a object expression');
+  assert(t.isObjectExpression(value), 'top-level value must be a object expression');
 
   result[name] = {};
 
@@ -39,7 +38,7 @@ function processProperties(properties, result) {
 function processProperty(key, value, result) {
   const name = keyToName(key);
 
-  if (n.Literal.check(value)) {
+  if (t.isLiteral(value)) {
     const val = value.value;
 
     assert(typeof val === 'string' || typeof val === 'number', 'value must be a string or number');
@@ -49,7 +48,7 @@ function processProperty(key, value, result) {
     }
 
     result[name] = val;
-  } else if (n.ObjectExpression.check(value)) {
+  } else if (t.isObjectExpression(value)) {
     result[name] = {};
 
     processProperties(value.properties, result[name]);
@@ -59,7 +58,7 @@ function processProperty(key, value, result) {
 }
 
 function keyToName(key) {
-  assert(n.Identifier.check(key) || n.Literal.check(key) && typeof key.value === 'string', 'key must be a string or identifier');
+  assert(t.isIdentifier(key) || t.isLiteral(key) && typeof key.value === 'string', 'key must be a string or identifier');
 
   return key.name || key.value;
 }

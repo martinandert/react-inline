@@ -2,10 +2,10 @@ BIN = ./node_modules/.bin
 COMMONIZE_OPTIONS = --relativize --follow-requires --ignore-dependencies --ignore-node-core --cache-dir tmp/cache/commoner
 
 build: node_modules/
-	@bin/build $(COMMONIZE_OPTIONS) src/ lib/ StyleSheet Extractor Bundler
+	@bin/build $(COMMONIZE_OPTIONS) src/ lib/ StyleSheet Transformer Extractor Bundler
 
 watch: node_modules/
-	@bin/build $(COMMONIZE_OPTIONS) --watch src/ lib/ StyleSheet Extractor Bundler
+	@bin/build $(COMMONIZE_OPTIONS) --watch src/ lib/ StyleSheet Transformer Extractor Bundler
 
 lint:
 	@true
