@@ -66,12 +66,12 @@ describe('Extractor.transform', () => {
     it('preserves other props', () => {
       const css = testTransformed({
         from: `
-          <div ref="x" style={styles.foo} lang="en" />;
+          <div {...props} ref="x" style={styles.foo} lang="en" />;
 
           var styles = StyleSheet.create({ foo: { margin: 0 } });
         `,
         to: `
-          <div ref="x" lang="en" className="test-styles-foo" />;
+          <div {...props} ref="x" lang="en" className="test-styles-foo" />;
 
           var styles = StyleSheet.create({ foo: { margin: 0 } });
         `

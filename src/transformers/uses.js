@@ -96,6 +96,11 @@ function extractInlineStyleFromJSX(node, element, className) {
   let classNameFound = false;
 
   attributes.forEach((attribute) => {
+    if (t.isJSXSpreadAttribute(attribute)) {
+      newAttributes.push(attribute);
+      return;
+    }
+
     let value;
 
     switch (attribute.name.name) {
