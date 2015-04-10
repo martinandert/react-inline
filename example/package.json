@@ -5,7 +5,7 @@
   "main": "./lib/server.js",
   "browser": "./lib/client.js",
   "dependencies": {
-    "babel-runtime": "^5.0.8",
+    "babel-runtime": "^5.0.12",
     "classnames": "^1.2.0",
     "compression": "^1.4.3",
     "ejs": "^2.3.1",

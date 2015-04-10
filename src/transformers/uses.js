@@ -9,9 +9,12 @@ import generateClassName from 'generateClassName';
 
 export default function(stylesheets, options = {}) {
   return new Transformer('react-inline-uses', {
-    MemberExpression(node) {
+    MemberExpression() {
       const info = evaluateExpression(this, stylesheets);
-      info && extractInlineStyle(this, info, options);
+
+      if (info) {
+        extractInlineStyle(this, info, options);
+      }
     }
   });
 };
@@ -20,30 +23,30 @@ function evaluateExpression(path, stylesheets) {
   const node = path.node;
 
   if (!t.isIdentifier(node.object) || !t.isIdentifier(node.property)) {
-    return;
+    return null;
   }
 
   const sheetId = node.object.name;
   const sheet = stylesheets[sheetId];
 
   if (!sheet) {
-    return;
+    return null;
   }
 
   const styleId = node.property.name;
   const style = sheet[styleId];
 
   if (!style) {
-    return;
+    return null;
   }
 
   const containment = getStyleContainment(path);
 
   if (!containment) {
-    return;
+    return null;
   }
 
-  return { sheetId, sheet, styleId, style, containment };
+  return { sheetId, sheet, styleId, style, ...containment };
 }
 
 function getStyleContainment(path) {
@@ -53,9 +56,15 @@ function getStyleContainment(path) {
   const pppp = ppp && ppp.parentPath;
 
   if (t.isJSXExpressionContainer(p.node) && t.isJSXAttribute(pp.node) && t.isJSXIdentifier(pp.node.name, { name: 'style' })) {
-    return t.isJSXOpeningElement(ppp.node) && { mode: 'jsx-singleton', node: ppp.node };
-  } else if (t.isArrayExpression(p.node) && t.isJSXExpressionContainer(pp.node) && t.isJSXAttribute(ppp.node) && t.isJSXIdentifier(ppp.node.name, { name: 'style' })) {
-    return t.isJSXOpeningElement(pppp.node) && { mode: 'jsx-array-element', node: pppp.node };
+    return t.isJSXOpeningElement(ppp.node) && { mode: 'JSX', container: ppp.node };
+  } else if (t.isProperty(p.node) && t.isIdentifier(p.node.key, { name: 'style' })) {
+    return t.isObjectExpression(pp.node) && { mode: 'Hash', container: pp.node };
+  } else if (t.isArrayExpression(p.node)) {
+    if (t.isJSXExpressionContainer(pp.node) && t.isJSXAttribute(ppp.node) && t.isJSXIdentifier(ppp.node.name, { name: 'style' })) {
+      return t.isJSXOpeningElement(pppp.node) && { mode: 'JSX', container: pppp.node };
+    } else if (t.isProperty(pp.node) && t.isIdentifier(pp.node.key, { name: 'style' })) {
+      return t.isObjectExpression(ppp.node) && { mode: 'Hash', container: ppp.node };
+    }
   }
 
   return null;
@@ -69,7 +78,18 @@ function extractInlineStyle(path, info, options) {
 
   const className = generateClassName(info.styleId, gcnOptions);
 
-  const element = info.containment.node;
+  switch (info.mode) {
+    case 'JSX':
+      extractInlineStyleFromJSX(path.node, info.container, className);
+      break;
+
+    case 'Hash':
+      extractInlineStyleFromHash(path.node, info.container, className);
+      break;
+  }
+}
+
+function extractInlineStyleFromJSX(node, element, className) {
   const attributes = element.attributes;
 
   let newAttributes = [];
@@ -82,14 +102,17 @@ function extractInlineStyle(path, info, options) {
       case 'style':
         value = attribute.value.expression;
 
-        if (value === path.node) {
+        /*eslint-disable no-empty */
+        if (value === node) {
           // we found our style, but do nothing, because it is
           // later on appended to the className attribute
+
+          /*eslint-enable no-empty */
         } else if (t.isArrayExpression(value)) {
           var newElements = [];
 
           value.elements.forEach((element) => {
-            if (element !== path.node) {
+            if (element !== node) {
               newElements.push(element);
             }
           });
@@ -130,7 +153,7 @@ function extractInlineStyle(path, info, options) {
           var newArguments = [];
 
           value.arguments.forEach((argument) => {
-            if (argument !== path.node) {
+            if (argument !== node) {
               newArguments.push(argument);
             }
           });
@@ -204,15 +227,18 @@ function extractInlineStyle(path, info, options) {
             );
           }
         } else if (t.isLiteral(value)) {
+          value = '' + value.value;
+
+          if (value.length) {
+            value += ' ' + className;
+          } else {
+            value = className;
+          }
+
           newAttributes.push(
             t.jSXAttribute(
               t.identifier('className'),
-              t.jSXExpressionContainer(
-                t.callExpression(
-                  t.identifier('__cx'),
-                  [value, t.literal(className)]
-                )
-              )
+              t.literal(value)
             )
           );
         } else {
@@ -238,4 +264,171 @@ function extractInlineStyle(path, info, options) {
   }
 
   element.attributes = newAttributes;
+}
+
+function extractInlineStyleFromHash(node, hash, className) {
+  const properties = hash.properties;
+
+  let newProperties = [];
+  let classNameFound = false;
+
+  properties.forEach((property) => {
+    if (!t.isIdentifier(property.key)) {
+      return;
+    }
+
+    let value = property.value;
+
+    switch (property.key.name) {
+      case 'style':
+        /*eslint-disable no-empty */
+        if (value === node) {
+          // we found our style, but do nothing, because it is
+          // later on appended to the className property
+
+          /*eslint-enable no-empty */
+        } else if (t.isArrayExpression(value)) {
+          var newElements = [];
+
+          value.elements.forEach((element) => {
+            if (element !== node) {
+              newElements.push(element);
+            }
+          });
+
+          switch (newElements.length) {
+            case 0:
+              // do nothing (removes property)
+              break;
+
+            case 1:
+              newProperties.push(
+                t.property(
+                  'init',
+                  t.identifier('style'),
+                  newElements[0]
+                )
+              );
+              break;
+
+            default:
+              newElements.unshift(t.objectExpression([]));
+
+              newProperties.push(
+                t.property(
+                  'init',
+                  t.identifier('style'),
+                  t.callExpression(
+                    t.identifier('__assign'),
+                    newElements
+                  )
+                )
+              );
+              break;
+          }
+        } else if (t.isCallExpression(value) && value.callee.name === '__assign') {
+          var newArguments = [];
+
+          value.arguments.forEach((argument) => {
+            if (argument !== node) {
+              newArguments.push(argument);
+            }
+          });
+
+          assert(newArguments.length > 0);
+
+          switch (newArguments.length) {
+            case 1:
+              // remove prop, because must be the empty object
+              break;
+
+            case 2:
+              newProperties.push(
+                t.property(
+                  'init',
+                  t.identifier('style'),
+                  newArguments[1]
+                )
+              );
+              break;
+
+            default:
+              newProperties.push(
+                t.property(
+                  'init',
+                  t.identifier('style'),
+                  t.callExpression(
+                    t.identifier('__assign'),
+                    newArguments
+                  )
+                )
+              );
+              break;
+          }
+        } else {
+          assert(false, 'should never be reached');
+        }
+        break;
+
+      case 'className':
+        if (t.isLiteral(value)) {
+          value = '' + value.value;
+
+          if (value.length) {
+            value += ' ' + className;
+          } else {
+            value = className;
+          }
+
+          newProperties.push(
+            t.property(
+              'init',
+              t.identifier('className'),
+              t.literal(value)
+            )
+          );
+        } else if (t.isCallExpression(value) && value.callee.name === '__cx') {
+          newProperties.push(
+            t.property(
+              'init',
+              t.identifier('className'),
+              t.callExpression(
+                t.identifier('__cx'),
+                value.arguments.concat(t.literal(className))
+              )
+            )
+          );
+        } else {
+          newProperties.push(
+            t.property(
+              'init',
+              t.identifier('className'),
+              t.callExpression(
+                t.identifier('__cx'),
+                [value, t.literal(className)]
+              )
+            )
+          );
+        }
+
+        classNameFound = true;
+        break;
+
+      default:
+        newProperties.push(property);
+        break;
+    }
+  });
+
+  if (!classNameFound) {
+    newProperties.push(
+      t.property(
+        'init',
+        t.identifier('className'),
+        t.literal(className)
+      )
+    );
+  }
+
+  hash.properties = newProperties;
 }

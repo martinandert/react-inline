@@ -25,14 +25,15 @@ export function transform(source, options = {}) {
   options.filename = options.filename || 'unknown';
 
   const tfs = babelize.transformers;
-  const cmf = babelize.moduleFormatters['common'];
+  const cmf = babelize.moduleFormatters.common;
 
   babelize.transformers = {};
-  babelize.moduleFormatters['common'] = function() {};
+  babelize.moduleFormatters.common = function() {};
 
   let stylesheets = {};
 
   const babelOptions = {
+    ast: false,
     plugins: [
       defsPlugin(stylesheets, options),
       usesPlugin(stylesheets, options)
@@ -51,7 +52,7 @@ export function transform(source, options = {}) {
   }
 
   babelize.transformers = tfs;
-  babelize.moduleFormatters['common'] = cmf;
+  babelize.moduleFormatters.common = cmf;
 
   return { code, css };
 }
@@ -65,14 +66,16 @@ export function transformFile(filename, options, callback) {
   options.filename = filename;
 
   fs.readFile(filename, function(err, source) {
-    if (err) return callback(err);
+    if (err) {
+      return callback(err);
+    }
 
     let result;
 
     try {
       result = transform(source, options);
-    } catch (err) {
-      return callback(err);
+    } catch (exc) {
+      return callback(exc);
     }
 
     callback(null, result);

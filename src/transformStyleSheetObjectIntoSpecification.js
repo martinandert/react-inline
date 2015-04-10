@@ -24,7 +24,7 @@ export default function transformStyleSheetObjectIntoSpecification(content) {
       assert(false, 'stand-alone pseudo-classes are not allowed at the top-level');
     } else if (hasAttachedPseudoClass.test(key)) {
       var [styleName, pseudoClassName] = key.split(':');
-      processStyleAndPseudoClass(styles, styleName, pseudoClassName, value)
+      processStyleAndPseudoClass(styles, styleName, pseudoClassName, value);
     } else {
       processStyle(styles, key, value);
     }
@@ -111,7 +111,7 @@ function processStyleAndMediaQueryAndPseudoClass(styles, styleName, mediaQueryNa
 
   let style       = initStyleSpec(styles, styleName);
   let mediaQuery  = initMediaQuerySpec(style.mediaQueries, mediaQueryName);
-  let pseudoClass = initPseudoClassSpec(mediaQuery.pseudoClasses, pseudoClassName)
+  let pseudoClass = initPseudoClassSpec(mediaQuery.pseudoClasses, pseudoClassName);
 
   objEach(content, (key, value) => {
     if (isMediaQueryDeclaration.test(key)) {
@@ -139,7 +139,7 @@ function initStyleSpec(styles, name) {
 }
 
 function initMediaQuerySpec(mediaQueries, name) {
-  mediaQueries[name] = mediaQueries[name] || { rules: {}, pseudoClasses: {} }
+  mediaQueries[name] = mediaQueries[name] || { rules: {}, pseudoClasses: {} };
   return mediaQueries[name];
 }
 

@@ -8,7 +8,7 @@ watch: node_modules/
 	@bin/build $(BUILD_OPTIONS) --watch src/ lib/ StyleSheet Extractor Bundler
 
 lint:
-	@true
+	@$(BIN)/eslint src/
 
 test: lint build
 	@$(BIN)/mocha --compilers js:babel/register -t 5000 -b -R spec test/spec.js

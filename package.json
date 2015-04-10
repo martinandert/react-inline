@@ -27,12 +27,13 @@
   },
   "main": "react-inline.js",
   "bin": {
-    "react-inline-extract": "./bin/cli.js"
+    "react-inline-extract": "./bin/cli.js",
+    "rix": "./bin/cli.js"
   },
   "dependencies": {
     "autoprefixer-core": "^5.1.8",
-    "babel-core": "^5.0.8",
-    "babel-runtime": "^5.0.8",
+    "babel-core": "^5.0.12",
+    "babel-runtime": "^5.0.12",
     "clean-css": "^3.1.9",
     "commoner": "martinandert/commoner#react-inline",
     "glob": "^5.0.3",
@@ -42,11 +43,13 @@
   "peerDependencies": {
     "classnames": "^1.2.0",
     "react": "^0.13.1",
-    "babel-runtime": "^5.0.8"
+    "babel-runtime": "^5.0.12"
   },
   "devDependencies": {
-    "babel": "^5.0.8",
+    "babel": "^5.0.12",
+    "babel-eslint": "^2.0.2",
     "classnames": "^1.2.0",
+    "eslint": "^0.18.0",
     "mocha": "^2.2.1",
     "react": "^0.13.1"
   }
