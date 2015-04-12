@@ -196,6 +196,7 @@ function extractInlineStyleFromJSX(node, element, className) {
               break;
           }
         } else {
+          /* istanbul ignore next */
           assert(false, 'should never be reached');
         }
         break;
@@ -247,6 +248,7 @@ function extractInlineStyleFromJSX(node, element, className) {
             )
           );
         } else {
+          /* istanbul ignore next */
           assert(false, `unhandled className value type: ${value.type}`);
         }
 
@@ -371,6 +373,7 @@ function extractInlineStyleFromHash(node, hash, className) {
               break;
           }
         } else {
+          /* istanbul ignore next */
           assert(false, 'should never be reached');
         }
         break;

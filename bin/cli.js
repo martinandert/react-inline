@@ -16,8 +16,6 @@ function collectMediaMap(item, memo) {
 
 require('commoner')
   .version(info.version)
-  .option('-a, --no-babel', 'Skip the Babel transformation step')
-  .option('-s, --babel-stage <stage>', 'Set Babel\'s experimental proposal stage (default: 2)', 2)
   .option('-p, --vendor-prefixes', 'Add vendor prefixes to generated CSS')
   .option('-o, --compress-class-names', 'Compress class names in generated CSS')
   .option('-I, --no-ignore-unused', 'Do not ignore unused styles when generating CSS')
@@ -25,6 +23,8 @@ require('commoner')
   .option('-q, --media-map <name=query>', 'Add media query shortcut, e.g. "phone=media (max-width: 640px)"', collectMediaMap, {})
   .option('-b, --bundle <file>', 'Bundle all generated CSS into file (default: "bundle.css")', 'bundle.css')
   .option('-B, --no-bundle', 'Disable bundling CSS')
+  .option('-a, --babelize', 'Add a Babel transformation step')
+  .option('-s, --babel-stage <stage>', 'Set Babel\'s experimental proposal stage (default: 2)', 2)
   .resolve(
     function(id) {
       var context = this;
@@ -55,7 +55,7 @@ require('commoner')
 
       var result = extractor.transform(source, extractOptions);
 
-      if (options.babel) {
+      if (options.babelize) {
         var babelOptions = {
           ast: false,
           optional: ['runtime'],

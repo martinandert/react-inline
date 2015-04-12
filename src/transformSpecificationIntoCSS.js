@@ -27,15 +27,17 @@ function processStyle(css, name, spec, level, options) {
 }
 
 function processRules(css, name, rules, level, options) {
-  if (isEmpty(rules)) { return; }
-
-  css.push(indent(level) + '.' + generateClassName(name, options) + ' {');
+  var rulesCSS = [];
 
   objEach(rules, (key, value) => {
-    css.push(indent(level + 1) + buildCSSRule(key, value, options));
+    rulesCSS.push(indent(level + 1) + buildCSSRule(key, value, options));
   });
 
-  css.push(indent(level) + '}');
+  if (rulesCSS.length) {
+    css.push(indent(level) + '.' + generateClassName(name, options) + ' {');
+    Array.prototype.push.apply(css, rulesCSS);
+    css.push(indent(level) + '}');
+  }
 }
 
 function processPseudoClasses(css, name, pseudoClasses, level, options) {
@@ -55,14 +57,16 @@ function processMediaQueries(css, name, mediaQueries, level, options) {
 }
 
 function processMediaQuery(css, name, query, content, level, options) {
-  if (isEmpty(content)) { return; }
+  var mediaQueryCSS = [];
 
-  css.push(indent(level) + '@' + generateMediaQueryName(query, options) + ' {');
+  processRules(mediaQueryCSS, name, content.rules, level + 1, options);
+  processPseudoClasses(mediaQueryCSS, name, content.pseudoClasses, level + 1, options);
 
-  processRules(css, name, content.rules, level + 1, options);
-  processPseudoClasses(css, name, content.pseudoClasses, level + 1, options);
-
-  css.push(indent(level) + '}');
+  if (mediaQueryCSS.length) {
+    css.push(indent(level) + '@' + generateMediaQueryName(query, options) + ' {');
+    Array.prototype.push.apply(css, mediaQueryCSS);
+    css.push(indent(level) + '}');
+  }
 }
 
 function generateMediaQueryName(name, options) {
@@ -73,11 +77,11 @@ function generateMediaQueryName(name, options) {
   return name;
 }
 
-function indent(level, str = '  ') {
+function indent(level) {
   let result = '';
 
   for (let i = 0; i < level; i++) {
-    result += str;
+    result += '  ';
   }
 
   return result;

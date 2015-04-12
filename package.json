@@ -42,14 +42,14 @@
   },
   "peerDependencies": {
     "classnames": "^1.2.0",
-    "react": "^0.13.1",
-    "babel-runtime": "^5.0.12"
+    "react": "^0.13.1"
   },
   "devDependencies": {
     "babel": "^5.0.12",
     "babel-eslint": "^2.0.2",
     "classnames": "^1.2.0",
     "eslint": "^0.18.0",
+    "istanbul": "^0.3.13",
     "mocha": "^2.2.1",
     "react": "^0.13.1"
   }

@@ -45,11 +45,88 @@ describe('Extractor.transform', () => {
     assert.strictEqual(css, null);
   });
 
+  it('does nothing if style not found', () => {
+    let code = `
+      <div stile={styles.missing} />;
+
+      var styles = StyleSheet.create({ foo: { margin: 0 } });
+    `;
+
+    testTransformed({ from: code, to: code });
+  });
+
+  it('does nothing if style accessed with string', () => { // TODO: this is a bug
+    let code = `
+      <div stile={styles["foo"]} />;
+
+      var styles = StyleSheet.create({ foo: { margin: 0 } });
+    `;
+
+    testTransformed({ from: code, to: code });
+  });
+
+  it('does nothing if not within JSX style attribute', () => {
+    let code = `
+      <div stile={styles.foo} />;
+
+      var styles = StyleSheet.create({ foo: { margin: 0 } });
+    `;
+
+    testTransformed({ from: code, to: code });
+  });
+
+  it('does nothing if not within JSX style attribute (array version)', () => {
+    let code = `
+      <div stile={[styles.foo]} />;
+
+      var styles = StyleSheet.create({ foo: { margin: 0 } });
+    `;
+
+    testTransformed({ from: code, to: code });
+  });
+
+  it('does nothing if not within React.createElement style prop', () => {
+    let code = `
+      React.createElement('div', { stile: styles.foo });
+
+      var styles = StyleSheet.create({ foo: { margin: 0 } });
+    `;
+
+    testTransformed({ from: code, to: code });
+  });
+
+  it('does nothing if not within React.createElement style prop (array version)', () => {
+    let code = `
+      React.createElement('div', { stile: [styles.foo] });
+
+      var styles = StyleSheet.create({ foo: { margin: 0 } });
+    `;
+
+    testTransformed({ from: code, to: code });
+  });
+
   describe('within JSXElement as value of "style" attribute', () => {
     it('converts style prop into className prop', () => {
       const css = testTransformed({
         from: `
           <div style={styles.foo} />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 } });
+        `,
+        to: `
+          <div className="test-styles-foo" />;
+
+          var styles = StyleSheet.create({ foo: { margin: 0 } });
+        `
+      });
+
+      testStyleRule(css, 'test-styles-foo', 'margin: 0');
+    });
+
+    it('converts style prop into className prop (empty className)', () => {
+      const css = testTransformed({
+        from: `
+          <div className="" style={styles.foo} />;
 
           var styles = StyleSheet.create({ foo: { margin: 0 } });
         `,
@@ -421,6 +498,23 @@ describe('Extractor.transform', () => {
       const css = testTransformed({
         from: `
           React.createElement('div', { style: styles.foo });
+
+          var styles = StyleSheet.create({ foo: { margin: 0 } });
+        `,
+        to: `
+          React.createElement('div', { className: 'test-styles-foo' });
+
+          var styles = StyleSheet.create({ foo: { margin: 0 } });
+        `
+      });
+
+      testStyleRule(css, 'test-styles-foo', 'margin: 0');
+    });
+
+    it('converts style prop into className prop (empty className', () => {
+      const css = testTransformed({
+        from: `
+          React.createElement('div', { className: '', style: styles.foo });
 
           var styles = StyleSheet.create({ foo: { margin: 0 } });
         `,
@@ -1465,6 +1559,7 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
     testInvalidInput({ foo: { 'bar:hover': {} } },                /styles cannot be nested into each other/);
     testInvalidInput({ foo: { '@media': { 'bar:hover': {} } } },  /styles cannot be nested into each other/);
     testInvalidInput({ foo: { ':hover': { 'bar:focus': {} } } },  /styles cannot be nested into each other/);
+    testInvalidInput({ '@media': { foo: { ':focus': { 'bar:hover': {} } } } },  /styles cannot be nested into each other/);
 
     testInvalidInput({ '@media1': { '@media2': {} } },                        /media queries cannot be nested into each other/);
     testInvalidInput({ '@media1': { foo: { '@media2': {} } } },               /media queries cannot be nested into each other/);
@@ -1702,5 +1797,58 @@ describe('Extractor.transformSpecificationIntoCSS', () => {
     assert(compressed.length);
 
     assert(uncompressed.length > compressed.length);
+  });
+
+  it('ignores empty media queries', () => {
+    testCSS({
+      foo: {
+        rules: {
+          margin: 0
+        },
+        mediaQueries: {
+          'media1': {
+            rules: {
+              margin: 1
+            }
+          },
+          'media2': {
+            rules: {
+
+            }
+          }
+        }
+      }
+    }, css`
+      .foo {
+        margin: 0px;
+      }
+      @media1 {
+        .foo {
+          margin: 1px;
+        }
+      }
+    `);
+  });
+
+  it('ignores unused styles when ignoreUnused options is present', () => {
+    testCSS({
+      foo: {
+        used: true,
+        rules: {
+          margin: 0
+        }
+      },
+      bar: {
+        rules: {
+          padding: 0
+        }
+      }
+    }, css`
+      .foo {
+        margin: 0px;
+      }
+    `, {
+      ignoreUnused: true
+    });
   });
 });

@@ -2,6 +2,7 @@
 /.gitignore
 /.npmignore
 /bin/build
+/coverage
 /example
 /src
 /tmp
