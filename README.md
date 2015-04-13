@@ -1,5 +1,9 @@
 # React Inline
 
+[![build status](https://img.shields.io/travis/martinandert/react-inline.svg?style=flat-square)](https://travis-ci.org/martinandert/react-inline)
+[![test coverage](https://img.shields.io/codeclimate/coverage/github/martinandert/react-inline.svg?style=flat-square)](https://codeclimate.com/github/martinandert/react-inline)
+[![npm version](https://img.shields.io/npm/v/react-inline.svg?style=flat-square)](https://www.npmjs.com/package/react-inline)
+
 Inline styles for React components with a transformer to extract them into a CSS bundle.
 
 TODO: Write synopsis.
