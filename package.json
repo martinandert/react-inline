@@ -1,6 +1,6 @@
 {
   "name": "react-inline",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Inline styles for React components with a transformer to extract them into a CSS bundle.",
   "keywords": [
     "react",
