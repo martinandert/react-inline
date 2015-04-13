@@ -1,6 +1,7 @@
 /.eslintrc
 /.gitignore
 /.npmignore
+/.travis.yml
 /bin/build
 /coverage
 /example

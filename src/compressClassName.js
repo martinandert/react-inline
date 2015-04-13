@@ -7,7 +7,7 @@ import MemoryCache  from 'MemoryCache';
 
 const cacheName = 'classnames';
 
-function getCache(options = {}) {
+function getCache(options) {
   if (options.cacheDir) {
     return new DiskCache(cacheName, options);
   } else {
@@ -15,11 +15,11 @@ function getCache(options = {}) {
   }
 }
 
-function clearCache(options = {}) {
+function clearCache(options) {
   getCache(options).clear();
 }
 
-export default function compressClassName(className, options = {}) {
+export default function compressClassName(className, options) {
   let cache = getCache(options);
 
   return cache.fetch(className, function(keys) {

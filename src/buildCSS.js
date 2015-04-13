@@ -4,18 +4,21 @@
 
 import autoprefixer from 'autoprefixer-core';
 import CleanCSS from 'clean-css';
-import objEach from 'objEach';
+import foreach from 'foreach';
 import transformSpecificationIntoCSS from 'transformSpecificationIntoCSS';
 
 export default function(stylesheets, options) {
   let css = '';
 
-  objEach(stylesheets, (name, stylesheet) => {
+  foreach(stylesheets, (stylesheet, name) => {
     let cssOptions = Object.assign({}, options);
     cssOptions.prefixes = [options.filename, name];
 
     css += transformSpecificationIntoCSS(stylesheet, cssOptions);
-    css += '\n';
+
+    if (css.length) {
+      css += '\n';
+    }
   });
 
   if (css.length === 0) {

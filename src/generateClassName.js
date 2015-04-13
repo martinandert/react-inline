@@ -6,7 +6,7 @@ import compressClassName from 'compressClassName';
 
 const invalidChars = /[^_a-z0-9-]/ig;
 
-export default function generateClassName(id, options = {}) {
+export default function generateClassName(id, options) {
   var result = '';
 
   if (options.prefix) {

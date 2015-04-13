@@ -8,7 +8,7 @@ build: node_modules/
 watch: node_modules/
 	@bin/build $(BUILD_OPTIONS) --watch src/ lib/ StyleSheet Extractor Bundler
 
-lint:
+lint: node_modules/
 	@$(BIN)/eslint src/
 
 test: lint build
@@ -43,4 +43,4 @@ define release
 	npm version $(1) -m 'release v%s'
 endef
 
-.PHONY: build watch lint test coverage clean distclean release-patch release-minor release-major publish
+.PHONY: build watch lint test test-cov clean distclean release-patch release-minor release-major publish

@@ -7,7 +7,7 @@ import { Transformer, types as t } from 'babel-core';
 
 import generateClassName from 'generateClassName';
 
-export default function(stylesheets, options = {}) {
+export default function(stylesheets, options) {
   return new Transformer('react-inline-uses', {
     MemberExpression() {
       const info = evaluateExpression(this, stylesheets);
@@ -96,7 +96,7 @@ function extractInlineStyleFromJSX(node, element, className) {
   let classNameFound = false;
 
   attributes.forEach((attribute) => {
-    if (t.isJSXSpreadAttribute(attribute)) {
+    if (!t.isJSXAttribute(attribute)) {
       newAttributes.push(attribute);
       return;
     }
@@ -154,7 +154,9 @@ function extractInlineStyleFromJSX(node, element, className) {
               );
               break;
           }
-        } else if (t.isCallExpression(value) && value.callee.name === '__assign') {
+        } else {
+          assert(t.isCallExpression(value) && value.callee.name === '__assign');
+
           var newArguments = [];
 
           value.arguments.forEach((argument) => {
@@ -163,41 +165,30 @@ function extractInlineStyleFromJSX(node, element, className) {
             }
           });
 
-          assert(newArguments.length > 0);
+          assert(newArguments.length > 1);
 
-          switch (newArguments.length) {
-            case 1:
-              // remove prop, because must be the empty object
-              break;
-
-            case 2:
-              newAttributes.push(
-                t.jSXAttribute(
-                  t.identifier('style'),
-                  t.jSXExpressionContainer(
-                    newArguments[1]
+          if (newArguments.length === 2) {
+            newAttributes.push(
+              t.jSXAttribute(
+                t.identifier('style'),
+                t.jSXExpressionContainer(
+                  newArguments[1]
+                )
+              )
+            );
+          } else {
+            newAttributes.push(
+              t.jSXAttribute(
+                t.identifier('style'),
+                t.jSXExpressionContainer(
+                  t.callExpression(
+                    t.identifier('__assign'),
+                    newArguments
                   )
                 )
-              );
-              break;
-
-            default:
-              newAttributes.push(
-                t.jSXAttribute(
-                  t.identifier('style'),
-                  t.jSXExpressionContainer(
-                    t.callExpression(
-                      t.identifier('__assign'),
-                      newArguments
-                    )
-                  )
-                )
-              );
-              break;
+              )
+            );
           }
-        } else {
-          /* istanbul ignore next */
-          assert(false, 'should never be reached');
         }
         break;
 
@@ -232,7 +223,9 @@ function extractInlineStyleFromJSX(node, element, className) {
               )
             );
           }
-        } else if (t.isLiteral(value)) {
+        } else {
+          assert(t.isLiteral(value));
+
           value = '' + value.value;
 
           if (value.length) {
@@ -247,9 +240,6 @@ function extractInlineStyleFromJSX(node, element, className) {
               t.literal(value)
             )
           );
-        } else {
-          /* istanbul ignore next */
-          assert(false, `unhandled className value type: ${value.type}`);
         }
 
         classNameFound = true;
@@ -281,6 +271,7 @@ function extractInlineStyleFromHash(node, hash, className) {
 
   properties.forEach((property) => {
     if (!t.isIdentifier(property.key)) {
+      newProperties.push(property);
       return;
     }
 
@@ -333,7 +324,9 @@ function extractInlineStyleFromHash(node, hash, className) {
               );
               break;
           }
-        } else if (t.isCallExpression(value) && value.callee.name === '__assign') {
+        } else {
+          assert(t.isCallExpression(value) && value.callee.name === '__assign');
+
           var newArguments = [];
 
           value.arguments.forEach((argument) => {
@@ -345,10 +338,6 @@ function extractInlineStyleFromHash(node, hash, className) {
           assert(newArguments.length > 0);
 
           switch (newArguments.length) {
-            case 1:
-              // remove prop, because must be the empty object
-              break;
-
             case 2:
               newProperties.push(
                 t.property(
@@ -372,9 +361,6 @@ function extractInlineStyleFromHash(node, hash, className) {
               );
               break;
           }
-        } else {
-          /* istanbul ignore next */
-          assert(false, 'should never be reached');
         }
         break;
 

@@ -1,4 +1,6 @@
 import assert from 'assert';
+import os from 'os';
+import fs from 'fs';
 import util from 'util';
 
 var Extractor = require('../extractor');
@@ -43,6 +45,22 @@ describe('Extractor.transform', () => {
     const css = testTransformed({ from: code, to: code });
 
     assert.strictEqual(css, null);
+  });
+
+  it('throws if return value of "StyleSheet.create" call is not assigned to a variable', () => {
+    assert.throws(() => {
+      testTransformed({
+        from: `
+          <div style={styles.foo} />;
+
+          StyleSheet.create({ foo: { margin: 0 } });
+        `, to: `
+          <div style={styles.foo} />;
+
+          StyleSheet.create({ foo: { margin: 0 } });
+        `
+      });
+    }, /must be assigned to a variable/);
   });
 
   it('does nothing if style not found', () => {
@@ -105,22 +123,49 @@ describe('Extractor.transform', () => {
     testTransformed({ from: code, to: code });
   });
 
+  it('return null css property if empty stylesheet provided', () => {
+    let code = `
+      React.createElement('div', null);
+
+      var styles = StyleSheet.create({});
+    `;
+
+    const css = testTransformed({ from: code, to: code });
+
+    assert.strictEqual(css, null);
+  });
+
+  it('works without options argument', () => {
+    assert.doesNotThrow(() => {
+      transform('var foo = "bar";')
+    });
+  });
+
+  it('works without a filename option', () => {
+    let code = 'var styles = StyleSheet.create({ foo: { margin: 0 } });';
+
+    const css = testTransformed({ from: code, to: code, options: { filename: undefined } });
+
+    assert(css.indexOf('.unknown-styles-foo') > -1);
+  });
+
   describe('within JSXElement as value of "style" attribute', () => {
     it('converts style prop into className prop', () => {
       const css = testTransformed({
         from: `
           <div style={styles.foo} />;
 
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
+          var styles = StyleSheet.create({ foo: { margin: 0, content: "foo" } });
         `,
         to: `
           <div className="test-styles-foo" />;
 
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
+          var styles = StyleSheet.create({ foo: { margin: 0, content: "foo" } });
         `
       });
 
       testStyleRule(css, 'test-styles-foo', 'margin: 0');
+      testStyleRule(css, 'test-styles-foo', 'content: \'foo\'');
     });
 
     it('converts style prop into className prop (empty className)', () => {
@@ -229,6 +274,23 @@ describe('Extractor.transform', () => {
 
         testStyleRule(css, 'test-styles-foo', 'margin: 0');
         testStyleRule(css, 'test-styles-bar', 'padding: 0');
+      });
+
+      it('converts style prop single element array to className prop', () => {
+        const css = testTransformed({
+          from: `
+            <div style={ [styles.foo] } />;
+
+            var styles = StyleSheet.create({ foo: { margin: 0 } });
+          `,
+          to: `
+            <div className="test-styles-foo" />;
+
+            var styles = StyleSheet.create({ foo: { margin: 0 } });
+          `
+        });
+
+        testStyleRule(css, 'test-styles-foo', 'margin: 0');
       });
 
       it('appends converted style prop elements to existing className with string value', () => {
@@ -378,10 +440,11 @@ describe('Extractor.transform', () => {
       var {clearCache} = require('../lib/compressClassName');
 
       beforeEach(() => {
-        clearCache();
+        clearCache({});
+        clearCache({ cacheDir: os.tmpdir() });
       });
 
-      it('compresses class names', () => {
+      it('compresses class names with memory cache', () => {
         const css = testTransformed({
           from: `
             <div className="baz" style={ [styles1.foo, styles2.xyz, styles1.bar, bam] } />;
@@ -397,6 +460,31 @@ describe('Extractor.transform', () => {
           `,
           options: {
             compressClassNames: true
+          }
+        });
+
+        testStyleRule(css, '_0', 'margin: 0');
+        testStyleRule(css, '_2', 'padding: 0');
+        testStyleRule(css, '_1', 'padding: 10');
+      });
+
+      it('compresses class names with disk cache', () => {
+        const css = testTransformed({
+          from: `
+            <div className="baz" style={ [styles1.foo, styles2.xyz, styles1.bar, bam] } />;
+
+            var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+            var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
+          `,
+          to: `
+            <div className="baz _0 _1 _2" style={bam} />;
+
+            var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+            var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
+          `,
+          options: {
+            compressClassNames: true,
+            cacheDir: os.tmpdir()
           }
         });
 
@@ -430,6 +518,30 @@ describe('Extractor.transform', () => {
       });
     });
 
+    describe('with vendorPrefixes option set to an object', () => {
+      it('adds vendor prefixes', () => {
+        const css = testTransformed({
+          from: `
+            <div style={styles.foo} />;
+
+            var styles = StyleSheet.create({ foo: { flex: 1 } });
+          `,
+          to: `
+            <div className="test-styles-foo" />;
+
+            var styles = StyleSheet.create({ foo: { flex: 1 } });
+          `,
+          options: {
+            vendorPrefixes: { remove: false }
+          }
+        });
+
+        testStyleRule(css, 'test-styles-foo', 'flex: 1');
+        testStyleRule(css, 'test-styles-foo', '-webkit-flex: 1');
+        testStyleRule(css, 'test-styles-foo', '-ms-flex: 1');
+      });
+    });
+
     describe('with minify option set to true', () => {
       it('minifies css', () => {
         const css = testTransformed({
@@ -453,7 +565,7 @@ describe('Extractor.transform', () => {
     });
 
     describe('with removeStyleSheetDefinitions option set to true', () => {
-      it('removes stylesheet definitions', () => {
+      it('removes stylesheet definitions (single variable declaration)', () => {
         const css = testTransformed({
           from: `
             <div style={styles.foo} />;
@@ -462,6 +574,24 @@ describe('Extractor.transform', () => {
           `,
           to: `
             <div className="test-styles-foo" />;
+          `,
+          options: {
+            removeStyleSheetDefinitions: true
+          }
+        });
+      });
+
+      it('removes stylesheet definitions (multi variable declaration)', () => {
+        const css = testTransformed({
+          from: `
+            <div style={styles.foo} />;
+
+            let x, styles = StyleSheet.create({ foo: { margin: 0 } }), y = "hui";
+          `,
+          to: `
+            <div className="test-styles-foo" />;
+
+            let x, y = "hui";
           `,
           options: {
             removeStyleSheetDefinitions: true
@@ -531,12 +661,12 @@ describe('Extractor.transform', () => {
     it('preserves other props', () => {
       const css = testTransformed({
         from: `
-          React.createElement('div', { ref: 'x', style: styles.foo, lang: 'en' });
+          React.createElement('div', { ['x']: 'y', ref: 'x', style: styles.foo, lang: 'en' });
 
           var styles = StyleSheet.create({ foo: { margin: 0 } });
         `,
         to: `
-          React.createElement('div', { ref: 'x', lang: 'en', className: 'test-styles-foo' });
+          React.createElement('div', { ['x']: 'y', ref: 'x', lang: 'en', className: 'test-styles-foo' });
 
           var styles = StyleSheet.create({ foo: { margin: 0 } });
         `
@@ -617,6 +747,23 @@ describe('Extractor.transform', () => {
 
         testStyleRule(css, 'test-styles-foo', 'margin: 0');
         testStyleRule(css, 'test-styles-bar', 'padding: 0');
+      });
+
+      it('converts style prop single element array to className prop', () => {
+        const css = testTransformed({
+          from: `
+            React.createElement('div', { style: [styles.foo] });
+
+            var styles = StyleSheet.create({ foo: { margin: 0 } });
+          `,
+          to: `
+            React.createElement('div', { className: 'test-styles-foo' });
+
+            var styles = StyleSheet.create({ foo: { margin: 0 } });
+          `
+        });
+
+        testStyleRule(css, 'test-styles-foo', 'margin: 0');
       });
 
       it('appends converted style prop elements to existing className with string value', () => {
@@ -766,7 +913,7 @@ describe('Extractor.transform', () => {
       var {clearCache} = require('../lib/compressClassName');
 
       beforeEach(() => {
-        clearCache();
+        clearCache({});
       });
 
       it('compresses class names', () => {
@@ -882,12 +1029,62 @@ describe('Extractor.transform', () => {
   });
 });
 
+describe('Extractor.transformFileSync', () => {
+  it('works without options argument', () => {
+    const {code, css} = Extractor.transformFileSync('test/fixtures/Button.js');
+
+    assert(typeof code === 'string');
+    assert(typeof css === 'string');
+  });
+
+  it('works with options argument', () => {
+    const {code, css} = Extractor.transformFileSync('test/fixtures/Button.js', { foo: 'bar' });
+
+    assert(typeof code === 'string');
+    assert(typeof css === 'string');
+  });
+});
+
+describe('Extractor.transformFile', () => {
+  it('works without options argument', (done) => {
+    Extractor.transformFile('test/fixtures/Button.js', (err, result) => {
+      assert(typeof result.code === 'string');
+      assert(typeof result.css === 'string');
+
+      done();
+    });
+  });
+
+  it('works with options argument', (done) => {
+    Extractor.transformFile('test/fixtures/Button.js', { foo: 'bar' }, (err, result) => {
+      assert(typeof result.code === 'string');
+      assert(typeof result.css === 'string');
+
+      done();
+    });
+  });
+
+  it('calls back on read file error', (done) => {
+    Extractor.transformFile('missing.js', (err) => {
+      assert(err);
+      done();
+    });
+  });
+
+  it('calls back on transformation error', (done) => {
+    Extractor.transformFile('test/fixtures/invalid.js', (err) => {
+      assert(err);
+      done();
+    });
+  });
+});
+
 describe('Extractor.transformObjectExpressionIntoStyleSheetObject', () => {
   var transform = Extractor.transformObjectExpressionIntoStyleSheetObject;
   var babel = require('babel');
 
   function makeObjectExpression(source) {
-    return babel.transform('var expr = ' + source).ast.program.body[1].declarations[0].init;
+    return babel.transform('var expr = ' + source).ast.program.body[0].declarations[0].init;
   }
 
   function testValidInput(input, expected) {

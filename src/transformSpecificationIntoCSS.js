@@ -2,14 +2,14 @@
  * @providesModule transformSpecificationIntoCSS
  */
 
-import objEach from 'objEach';
+import foreach from 'foreach';
 import buildCSSRule from 'buildCSSRule';
 import generateClassName from 'generateClassName';
 
 export default function transformSpecificationIntoCSS(spec, options = {}) {
   let css = [];
 
-  objEach(spec, (key, value) => {
+  foreach(spec, (value, key) => {
     processStyle(css, key, value, 0, options);
   });
 
@@ -27,23 +27,21 @@ function processStyle(css, name, spec, level, options) {
 }
 
 function processRules(css, name, rules, level, options) {
-  var rulesCSS = [];
+  if (isEmpty(rules)) { return; }
 
-  objEach(rules, (key, value) => {
-    rulesCSS.push(indent(level + 1) + buildCSSRule(key, value, options));
+  css.push(indent(level) + '.' + generateClassName(name, options) + ' {');
+
+  foreach(rules, (value, key) => {
+    css.push(indent(level + 1) + buildCSSRule(key, value, options));
   });
 
-  if (rulesCSS.length) {
-    css.push(indent(level) + '.' + generateClassName(name, options) + ' {');
-    Array.prototype.push.apply(css, rulesCSS);
-    css.push(indent(level) + '}');
-  }
+  css.push(indent(level) + '}');
 }
 
 function processPseudoClasses(css, name, pseudoClasses, level, options) {
   if (isEmpty(pseudoClasses)) { return; }
 
-  objEach(pseudoClasses, (key, value) => {
+  foreach(pseudoClasses, (value, key) => {
     processRules(css, name + ':' + key, value.rules, level, options);
   });
 }
@@ -51,7 +49,7 @@ function processPseudoClasses(css, name, pseudoClasses, level, options) {
 function processMediaQueries(css, name, mediaQueries, level, options) {
   if (isEmpty(mediaQueries)) { return; }
 
-  objEach(mediaQueries, (key, value) => {
+  foreach(mediaQueries, (value, key) => {
     processMediaQuery(css, name, key, value, level, options);
   });
 }

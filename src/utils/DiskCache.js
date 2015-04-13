@@ -8,14 +8,16 @@ import mkdirp from 'mkdirp';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-function clear(filePath) {
-  fs.writeFileSync(filePath, '{}');
+function remove(filePath) {
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
 }
 
 function load(filePath) {
   if (!fs.existsSync(filePath)) {
     mkdirp.sync(path.dirname(filePath));
-    clear(filePath);
+    store({}, filePath);
     return {};
   }
 
@@ -29,7 +31,7 @@ function store(data, filePath) {
 }
 
 class DiskCache {
-  constructor(name, options = {}) {
+  constructor(name, options) {
     this.filePath = path.resolve(path.join(options.cacheDir, name + '.json'));
 
     this.fetch.bind(this);
@@ -51,7 +53,7 @@ class DiskCache {
   }
 
   clear() {
-    clear(this.filePath);
+    remove(this.filePath);
   }
 }
 

@@ -3,7 +3,7 @@
  */
 
 import assert   from 'assert';
-import objEach  from 'objEach';
+import foreach  from 'foreach';
 
 import {isValid as isValidPseudoClass} from 'pseudoClasses';
 
@@ -17,7 +17,7 @@ export default function transformStyleSheetObjectIntoSpecification(content) {
 
   let styles = {};
 
-  objEach(content, (key, value) => {
+  foreach(content, (value, key) => {
     if (isMediaQueryDeclaration.test(key)) {
       processMediaQuery(styles, key.substring(1), value);
     } else if (isStandalonePseudoClass.test(key)) {
@@ -36,7 +36,7 @@ export default function transformStyleSheetObjectIntoSpecification(content) {
 function processMediaQuery(styles, mediaQueryName, content) {
   assertPlainObject(content);
 
-  objEach(content, (key, value) => {
+  foreach(content, (value, key) => {
     if (isMediaQueryDeclaration.test(key)) {
       assert(false, 'media queries cannot be nested into each other');
     } else if (isStandalonePseudoClass.test(key)) {
@@ -55,7 +55,7 @@ function processStyle(styles, styleName, content) {
 
   let style = initStyleSpec(styles, styleName);
 
-  objEach(content, (key, value) => {
+  foreach(content, (value, key) => {
     if (isMediaQueryDeclaration.test(key)) {
       processStyleAndMediaQuery(styles, styleName, key.substring(1), value);
     } else if (isStandalonePseudoClass.test(key)) {
@@ -74,7 +74,7 @@ function processStyleAndMediaQuery(styles, styleName, mediaQueryName, content) {
   let style       = initStyleSpec(styles, styleName);
   let mediaQuery  = initMediaQuerySpec(style.mediaQueries, mediaQueryName);
 
-  objEach(content, (key, value) => {
+  foreach(content, (value, key) => {
     if (isMediaQueryDeclaration.test(key)) {
       assert(false, 'media queries cannot be nested into each other');
     } else if (isStandalonePseudoClass.test(key)) {
@@ -93,7 +93,7 @@ function processStyleAndPseudoClass(styles, styleName, pseudoClassName, content)
   let style       = initStyleSpec(styles, styleName);
   let pseudoClass = initPseudoClassSpec(style.pseudoClasses, pseudoClassName);
 
-  objEach(content, (key, value) => {
+  foreach(content, (value, key) => {
     if (isMediaQueryDeclaration.test(key)) {
       assert(false, 'media queries cannot be nested into pseudo-classes');
     } else if (isStandalonePseudoClass.test(key)) {
@@ -113,7 +113,7 @@ function processStyleAndMediaQueryAndPseudoClass(styles, styleName, mediaQueryNa
   let mediaQuery  = initMediaQuerySpec(style.mediaQueries, mediaQueryName);
   let pseudoClass = initPseudoClassSpec(mediaQuery.pseudoClasses, pseudoClassName);
 
-  objEach(content, (key, value) => {
+  foreach(content, (value, key) => {
     if (isMediaQueryDeclaration.test(key)) {
       assert(false, 'media queries cannot be nested into each other');
     } else if (isStandalonePseudoClass.test(key)) {

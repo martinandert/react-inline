@@ -8,7 +8,7 @@ import { Transformer, types as t } from 'babel-core';
 import transformObjectExpressionIntoStyleSheetObject from 'transformObjectExpressionIntoStyleSheetObject';
 import transformStyleSheetObjectIntoSpecification from 'transformStyleSheetObjectIntoSpecification';
 
-export default function(stylesheets, options = {}) {
+export default function(stylesheets, options) {
   return new Transformer('react-inline-defs', {
     CallExpression(node, parent) {
       var callee = node.callee;
@@ -26,10 +26,14 @@ export default function(stylesheets, options = {}) {
           stylesheets[name] = sheet;
 
           if (options.removeStyleSheetDefinitions) {
-            let ppPath = this.parentPath.parentPath;
+            let pPath = this.parentPath;
+            let ppPath = pPath.parentPath;
 
-            if (t.isVariableDeclaration(ppPath.node)) {
+            // we assume here that ppPath.node is always a VariableDeclaration
+            if (ppPath.node.declarations.length === 1) {
               ppPath.remove();
+            } else {
+              pPath.remove();
             }
           }
         } else {
