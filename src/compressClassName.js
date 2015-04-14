@@ -25,6 +25,6 @@ export default function compressClassName(className, options) {
   return cache.fetch(className, function(keys) {
     return '_' + keys.length.toString(36).split('').reverse().join('');
   });
-};
+}
 
 compressClassName.clearCache = clearCache;

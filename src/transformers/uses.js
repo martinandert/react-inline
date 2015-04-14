@@ -17,7 +17,7 @@ export default function(stylesheets, options) {
       }
     }
   });
-};
+}
 
 function evaluateExpression(path, stylesheets) {
   const node = path.node;
@@ -116,9 +116,9 @@ function extractInlineStyleFromJSX(node, element, className) {
         } else if (t.isArrayExpression(value)) {
           var newElements = [];
 
-          value.elements.forEach((element) => {
-            if (element !== node) {
-              newElements.push(element);
+          value.elements.forEach((item) => {
+            if (item !== node) {
+              newElements.push(item);
             }
           });
 

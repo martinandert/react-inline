@@ -31,4 +31,4 @@ export default {
   nonFunctional: nonFunctionalPseudoClasses,
 
   isValid: isValidPseudoClass
-}
+};
