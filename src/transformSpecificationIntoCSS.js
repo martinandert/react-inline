@@ -22,7 +22,7 @@ function processStyle(css, name, spec, level, options) {
   }
 
   processRules(css, name, spec.rules, level, options);
-  processPseudoClasses(css, name, spec.pseudoClasses, level, options);
+  processSelectors(css, name, spec.selectors, level, options);
   processMediaQueries(css, name, spec.mediaQueries, level, options);
 }
 
@@ -38,11 +38,11 @@ function processRules(css, name, rules, level, options) {
   css.push(indent(level) + '}');
 }
 
-function processPseudoClasses(css, name, pseudoClasses, level, options) {
-  if (isEmpty(pseudoClasses)) { return; }
+function processSelectors(css, name, selectors, level, options) {
+  if (isEmpty(selectors)) { return; }
 
-  foreach(pseudoClasses, (value, key) => {
-    processRules(css, name + ':' + key, value.rules, level, options);
+  foreach(selectors, (value, key) => {
+    processRules(css, name + key, value.rules, level, options);
   });
 }
 
@@ -58,7 +58,7 @@ function processMediaQuery(css, name, query, content, level, options) {
   var mediaQueryCSS = [];
 
   processRules(mediaQueryCSS, name, content.rules, level + 1, options);
-  processPseudoClasses(mediaQueryCSS, name, content.pseudoClasses, level + 1, options);
+  processSelectors(mediaQueryCSS, name, content.selectors, level + 1, options);
 
   if (mediaQueryCSS.length) {
     css.push(indent(level) + '@' + generateMediaQueryName(query, options) + ' {');

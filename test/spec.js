@@ -36,11 +36,7 @@ describe('Extractor.transform', () => {
   }
 
   it('does nothing if no "StyleSheet.create" call is present', () => {
-    let code = `
-      <div style={styles.foo} />;
-
-      var styles = { foo: { margin: 0 } };
-    `;
+    let code = 'var styles = Style.create({ foo: { margin: 0 } });';
 
     const css = testTransformed({ from: code, to: code });
 
@@ -63,74 +59,11 @@ describe('Extractor.transform', () => {
     }, /must be assigned to a variable/);
   });
 
-  it('does nothing if style not found', () => {
-    let code = `
-      <div stile={styles.missing} />;
-
-      var styles = StyleSheet.create({ foo: { margin: 0 } });
-    `;
-
-    testTransformed({ from: code, to: code });
-  });
-
-  it('does nothing if style accessed with string', () => { // TODO: this is a bug
-    let code = `
-      <div stile={styles["foo"]} />;
-
-      var styles = StyleSheet.create({ foo: { margin: 0 } });
-    `;
-
-    testTransformed({ from: code, to: code });
-  });
-
-  it('does nothing if not within JSX style attribute', () => {
-    let code = `
-      <div stile={styles.foo} />;
-
-      var styles = StyleSheet.create({ foo: { margin: 0 } });
-    `;
-
-    testTransformed({ from: code, to: code });
-  });
-
-  it('does nothing if not within JSX style attribute (array version)', () => {
-    let code = `
-      <div stile={[styles.foo]} />;
-
-      var styles = StyleSheet.create({ foo: { margin: 0 } });
-    `;
-
-    testTransformed({ from: code, to: code });
-  });
-
-  it('does nothing if not within React.createElement style prop', () => {
-    let code = `
-      React.createElement('div', { stile: styles.foo });
-
-      var styles = StyleSheet.create({ foo: { margin: 0 } });
-    `;
-
-    testTransformed({ from: code, to: code });
-  });
-
-  it('does nothing if not within React.createElement style prop (array version)', () => {
-    let code = `
-      React.createElement('div', { stile: [styles.foo] });
-
-      var styles = StyleSheet.create({ foo: { margin: 0 } });
-    `;
-
-    testTransformed({ from: code, to: code });
-  });
-
-  it('return null css property if empty stylesheet provided', () => {
-    let code = `
-      React.createElement('div', null);
-
-      var styles = StyleSheet.create({});
-    `;
-
-    const css = testTransformed({ from: code, to: code });
+  it('returns null css property if empty stylesheet provided', () => {
+    const css = testTransformed({
+      from: 'var styles = StyleSheet.create({});',
+      to:   'var styles = {};'
+    });
 
     assert.strictEqual(css, null);
   });
@@ -142,889 +75,122 @@ describe('Extractor.transform', () => {
   });
 
   it('works without a filename option', () => {
-    let code = 'var styles = StyleSheet.create({ foo: { margin: 0 } });';
-
-    const css = testTransformed({ from: code, to: code, options: { filename: undefined } });
+    const css = testTransformed({
+      from: 'var styles = StyleSheet.create({ foo: { margin: 0 } });',
+      to:   'var styles = { foo: "unknown-styles-foo" };',
+      options: { filename: undefined } });
 
     assert(css.indexOf('.unknown-styles-foo') > -1);
   });
 
-  describe('within JSXElement as value of "style" attribute', () => {
-    it('converts style prop into className prop', () => {
+  it('works with StyleSheet["create"](...)', () => {
+    const css = testTransformed({
+      from: 'var styles = StyleSheet["create"]({ foo: { content: "x" } });',
+      to:   'var styles = { foo: "test-styles-foo" };'
+    });
+
+    testStyleRule(css, 'test-styles-foo', 'content: \'x\'');
+  });
+
+  describe('with compressClassNames option set to true', () => {
+    var {clearCache} = require('../lib/compressClassName');
+
+    beforeEach(() => {
+      clearCache({});
+      clearCache({ cacheDir: os.tmpdir() });
+    });
+
+    it('compresses class names with memory cache', () => {
       const css = testTransformed({
         from: `
-          <div style={styles.foo} />;
-
-          var styles = StyleSheet.create({ foo: { margin: 0, content: "foo" } });
+          var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+          var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
         `,
         to: `
-          <div className="test-styles-foo" />;
-
-          var styles = StyleSheet.create({ foo: { margin: 0, content: "foo" } });
-        `
+          var styles1 = { foo: "_0", bar: "_1" };
+          var styles2 = { xyz: "_2" };
+        `,
+        options: {
+          compressClassNames: true
+        }
       });
 
-      testStyleRule(css, 'test-styles-foo', 'margin: 0');
-      testStyleRule(css, 'test-styles-foo', 'content: \'foo\'');
+      testStyleRule(css, '_0', 'margin: 0');
+      testStyleRule(css, '_1', 'padding: 0');
+      testStyleRule(css, '_2', 'padding: 10');
     });
 
-    it('converts style prop into className prop (empty className)', () => {
+    it('compresses class names with disk cache', () => {
       const css = testTransformed({
         from: `
-          <div className="" style={styles.foo} />;
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
+          var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
+          var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
         `,
         to: `
-          <div className="test-styles-foo" />;
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `
-      });
-
-      testStyleRule(css, 'test-styles-foo', 'margin: 0');
-    });
-
-    it('preserves other props', () => {
-      const css = testTransformed({
-        from: `
-          <div {...props} ref="x" style={styles.foo} lang="en" />;
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
+          var styles1 = { foo: "_0", bar: "_1" };
+          var styles2 = { xyz: "_2" };
         `,
-        to: `
-          <div {...props} ref="x" lang="en" className="test-styles-foo" />;
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `
+        options: {
+          compressClassNames: true,
+          cacheDir: os.tmpdir()
+        }
       });
 
-      testStyleRule(css, 'test-styles-foo', 'margin: 0');
-    });
-
-    it('appends converted style prop to existing className with string value', () => {
-      const css = testTransformed({
-        from: `
-          <div className="baz" style={styles.foo} />;
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `,
-        to: `
-          <div className="baz test-styles-foo" />;
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `
-      });
-
-      testStyleRule(css, 'test-styles-foo', 'margin: 0');
-    });
-
-    it('appends converted style prop to existing className with identifier value', () => {
-      const css = testTransformed({
-        from: `
-          <div className={baz} style={styles.foo} />;
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `,
-        to: `
-          <div className={__cx(baz, "test-styles-foo")} />;
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-
-          var __cx = require("classnames");
-        `
-      });
-
-      testStyleRule(css, 'test-styles-foo', 'margin: 0');
-    });
-
-    it('appends converted style prop to existing className with function call value', () => {
-      const css = testTransformed({
-        from: `
-          <div className={baz(42)} style={styles.foo} />;
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `,
-        to: `
-          <div className={__cx(baz(42), "test-styles-foo")} />;
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-
-          var __cx = require("classnames");
-        `
-      });
-
-      testStyleRule(css, 'test-styles-foo', 'margin: 0');
-    });
-
-    describe('with style prop having an array as value', () => {
-      it('converts style prop elements to className prop', () => {
-        const css = testTransformed({
-          from: `
-            <div style={ [styles.foo, styles.bar] } />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            <div className="test-styles-foo test-styles-bar" />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-
-      it('converts style prop single element array to className prop', () => {
-        const css = testTransformed({
-          from: `
-            <div style={ [styles.foo] } />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 } });
-          `,
-          to: `
-            <div className="test-styles-foo" />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 } });
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-      });
-
-      it('appends converted style prop elements to existing className with string value', () => {
-        const css = testTransformed({
-          from: `
-            <div className="baz" style={ [styles.foo, styles.bar] } />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            <div className="baz test-styles-foo test-styles-bar" />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-
-      it('appends converted style prop elements to existing className with identifier value', () => {
-        const css = testTransformed({
-          from: `
-            <div className={baz} style={ [styles.foo, styles.bar] } />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            <div className={__cx(baz, "test-styles-foo", "test-styles-bar")} />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-
-            var __cx = require("classnames");
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-
-      it('appends converted style prop elements to existing className with function call value', () => {
-        const css = testTransformed({
-          from: `
-            <div className={baz(42)} style={ [styles.foo, styles.bar] } />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            <div className={__cx(baz(42), "test-styles-foo", "test-styles-bar")} />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-
-            var __cx = require("classnames");
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-
-      it('properly handles a hash-typed style prop element', () => {
-        const css = testTransformed({
-          from: `
-            <div className={baz(42)} style={ [styles.foo, styles.bar, { boo: 0 }] } />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            <div className={__cx(baz(42), "test-styles-foo", "test-styles-bar")} style={{ boo: 0 }} />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-
-            var __cx = require("classnames");
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-
-      it('properly handles a identifier-typed style prop element', () => {
-        const css = testTransformed({
-          from: `
-            <div className={baz(42)} style={ [styles.foo, styles.bar, boo] } />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            <div className={__cx(baz(42), "test-styles-foo", "test-styles-bar")} style={boo} />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-
-            var __cx = require("classnames");
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-
-      it('properly handles multiple other style prop elements', () => {
-        const css = testTransformed({
-          from: `
-            <div className={baz(42)} style={ [styles.foo, styles.bar, bam, { boo: 0 }] } />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            <div className={__cx(baz(42), "test-styles-foo", "test-styles-bar")} style={__assign({}, bam, { boo: 0 })} />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-
-            var __cx = require("classnames");
-            var __assign = require("react/lib/Object.assign");
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-    });
-
-    describe('with multiple stylesheets', () => {
-      it('places class names in order of appearance', () => {
-        const css = testTransformed({
-          from: `
-            <div className="baz" style={ [styles1.foo, styles2.xyz, styles1.bar, bam] } />;
-
-            var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-            var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
-          `,
-          to: `
-            <div className="baz test-styles1-foo test-styles2-xyz test-styles1-bar" style={bam} />;
-
-            var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-            var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
-          `
-        });
-
-        testStyleRule(css, 'test-styles1-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles1-bar', 'padding: 0');
-        testStyleRule(css, 'test-styles2-xyz', 'padding: 10');
-      });
-    });
-
-    describe('with compressClassNames option set to true', () => {
-      var {clearCache} = require('../lib/compressClassName');
-
-      beforeEach(() => {
-        clearCache({});
-        clearCache({ cacheDir: os.tmpdir() });
-      });
-
-      it('compresses class names with memory cache', () => {
-        const css = testTransformed({
-          from: `
-            <div className="baz" style={ [styles1.foo, styles2.xyz, styles1.bar, bam] } />;
-
-            var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-            var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
-          `,
-          to: `
-            <div className="baz _0 _1 _2" style={bam} />;
-
-            var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-            var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
-          `,
-          options: {
-            compressClassNames: true
-          }
-        });
-
-        testStyleRule(css, '_0', 'margin: 0');
-        testStyleRule(css, '_2', 'padding: 0');
-        testStyleRule(css, '_1', 'padding: 10');
-      });
-
-      it('compresses class names with disk cache', () => {
-        const css = testTransformed({
-          from: `
-            <div className="baz" style={ [styles1.foo, styles2.xyz, styles1.bar, bam] } />;
-
-            var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-            var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
-          `,
-          to: `
-            <div className="baz _0 _1 _2" style={bam} />;
-
-            var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-            var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
-          `,
-          options: {
-            compressClassNames: true,
-            cacheDir: os.tmpdir()
-          }
-        });
-
-        testStyleRule(css, '_0', 'margin: 0');
-        testStyleRule(css, '_2', 'padding: 0');
-        testStyleRule(css, '_1', 'padding: 10');
-      });
-    });
-
-    describe('with vendorPrefixes option set to true', () => {
-      it('adds vendor prefixes', () => {
-        const css = testTransformed({
-          from: `
-            <div style={styles.foo} />;
-
-            var styles = StyleSheet.create({ foo: { flex: 1 } });
-          `,
-          to: `
-            <div className="test-styles-foo" />;
-
-            var styles = StyleSheet.create({ foo: { flex: 1 } });
-          `,
-          options: {
-            vendorPrefixes: true
-          }
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'flex: 1');
-        testStyleRule(css, 'test-styles-foo', '-webkit-flex: 1');
-        testStyleRule(css, 'test-styles-foo', '-ms-flex: 1');
-      });
-    });
-
-    describe('with vendorPrefixes option set to an object', () => {
-      it('adds vendor prefixes', () => {
-        const css = testTransformed({
-          from: `
-            <div style={styles.foo} />;
-
-            var styles = StyleSheet.create({ foo: { flex: 1 } });
-          `,
-          to: `
-            <div className="test-styles-foo" />;
-
-            var styles = StyleSheet.create({ foo: { flex: 1 } });
-          `,
-          options: {
-            vendorPrefixes: { remove: false }
-          }
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'flex: 1');
-        testStyleRule(css, 'test-styles-foo', '-webkit-flex: 1');
-        testStyleRule(css, 'test-styles-foo', '-ms-flex: 1');
-      });
-    });
-
-    describe('with minify option set to true', () => {
-      it('minifies css', () => {
-        const css = testTransformed({
-          from: `
-            <div style={ [styles.foo, styles.bar] } />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            <div className="test-styles-foo test-styles-bar" />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          options: {
-            minify: true
-          }
-        });
-
-        assert.equal(css, '.test-styles-foo{margin:0}.test-styles-bar{padding:0}');
-      });
-    });
-
-    describe('with removeStyleSheetDefinitions option set to true', () => {
-      it('removes stylesheet definitions (single variable declaration)', () => {
-        const css = testTransformed({
-          from: `
-            <div style={styles.foo} />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 } });
-          `,
-          to: `
-            <div className="test-styles-foo" />;
-          `,
-          options: {
-            removeStyleSheetDefinitions: true
-          }
-        });
-      });
-
-      it('removes stylesheet definitions (multi variable declaration)', () => {
-        const css = testTransformed({
-          from: `
-            <div style={styles.foo} />;
-
-            let x, styles = StyleSheet.create({ foo: { margin: 0 } }), y = "hui";
-          `,
-          to: `
-            <div className="test-styles-foo" />;
-
-            let x, y = "hui";
-          `,
-          options: {
-            removeStyleSheetDefinitions: true
-          }
-        });
-      });
-    });
-
-    describe('with filename option provided', () => {
-      it('respects filename when generating class names', () => {
-        const css = testTransformed({
-          from: `
-            <div style={styles.foo} />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 } });
-          `,
-          to: `
-            <div className="x_y_js-styles-foo" />;
-
-            var styles = StyleSheet.create({ foo: { margin: 0 } });
-          `,
-          options: {
-            filename: 'x/y.js'
-          }
-        });
-
-        testStyleRule(css, 'x_y_js-styles-foo', 'margin: 0');
-      });
+      testStyleRule(css, '_0', 'margin: 0');
+      testStyleRule(css, '_1', 'padding: 0');
+      testStyleRule(css, '_2', 'padding: 10');
     });
   });
 
-  describe('within hash as value of "style" key', () => {
-    it('converts style prop into className prop', () => {
+  describe('with vendorPrefixes option set to true', () => {
+    it('adds vendor prefixes', () => {
       const css = testTransformed({
-        from: `
-          React.createElement('div', { style: styles.foo });
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `,
-        to: `
-          React.createElement('div', { className: 'test-styles-foo' });
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `
+        from: 'var styles = StyleSheet.create({ foo: { flex: 1 } });',
+        to:   'var styles = { foo: "test-styles-foo" };',
+        options: { vendorPrefixes: true }
       });
 
-      testStyleRule(css, 'test-styles-foo', 'margin: 0');
+      testStyleRule(css, 'test-styles-foo', 'flex: 1');
+      testStyleRule(css, 'test-styles-foo', '-webkit-flex: 1');
+      testStyleRule(css, 'test-styles-foo', '-ms-flex: 1');
     });
+  });
 
-    it('converts style prop into className prop (empty className', () => {
+  describe('with vendorPrefixes option set to an object', () => {
+    it('adds vendor prefixes', () => {
       const css = testTransformed({
-        from: `
-          React.createElement('div', { className: '', style: styles.foo });
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `,
-        to: `
-          React.createElement('div', { className: 'test-styles-foo' });
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `
+        from: 'var styles = StyleSheet.create({ foo: { flex: 1 } });',
+        to:   'var styles = { foo: "test-styles-foo" };',
+        options: { vendorPrefixes: { remove: false } }
       });
 
-      testStyleRule(css, 'test-styles-foo', 'margin: 0');
+      testStyleRule(css, 'test-styles-foo', 'flex: 1');
+      testStyleRule(css, 'test-styles-foo', '-webkit-flex: 1');
+      testStyleRule(css, 'test-styles-foo', '-ms-flex: 1');
     });
+  });
 
-    it('preserves other props', () => {
+  describe('with minify option set to true', () => {
+    it('minifies css', () => {
       const css = testTransformed({
-        from: `
-          React.createElement('div', { ['x']: 'y', ref: 'x', style: styles.foo, lang: 'en' });
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `,
-        to: `
-          React.createElement('div', { ['x']: 'y', ref: 'x', lang: 'en', className: 'test-styles-foo' });
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `
+        from: 'var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });',
+        to:   'var styles = { foo: "test-styles-foo", bar: "test-styles-bar" };',
+        options: { minify: true }
       });
 
-      testStyleRule(css, 'test-styles-foo', 'margin: 0');
+      assert.equal(css, '.test-styles-foo{margin:0}.test-styles-bar{padding:0}');
     });
+  });
 
-    it('appends converted style prop to existing className with string value', () => {
+  describe('with filename option provided', () => {
+    it('respects filename when generating class names', () => {
       const css = testTransformed({
-        from: `
-          React.createElement('div', { className: 'baz', style: styles.foo });
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `,
-        to: `
-          React.createElement('div', { className: 'baz test-styles-foo' });
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `
+        from: 'var styles = StyleSheet.create({ foo: { margin: 0 } });',
+        to:   'var styles = { foo: "x_y_js-styles-foo" };',
+        options: { filename: 'x/y.js' }
       });
 
-      testStyleRule(css, 'test-styles-foo', 'margin: 0');
-    });
-
-    it('appends converted style prop to existing className with identifier value', () => {
-      const css = testTransformed({
-        from: `
-          React.createElement('div', { className: baz, style: styles.foo });
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `,
-        to: `
-          React.createElement('div', { className: __cx(baz, 'test-styles-foo') });
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-
-          var __cx = require("classnames");
-        `
-      });
-
-      testStyleRule(css, 'test-styles-foo', 'margin: 0');
-    });
-
-    it('appends converted style prop to existing className with function call value', () => {
-      const css = testTransformed({
-        from: `
-          React.createElement('div', { className: baz(42), style: styles.foo });
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-        `,
-        to: `
-          React.createElement('div', { className: __cx(baz(42), 'test-styles-foo') });
-
-          var styles = StyleSheet.create({ foo: { margin: 0 } });
-
-          var __cx = require("classnames");
-        `
-      });
-
-      testStyleRule(css, 'test-styles-foo', 'margin: 0');
-    });
-
-    describe('with style prop having an array as value', () => {
-      it('converts style prop elements to className prop', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { style: [styles.foo, styles.bar] });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            React.createElement('div', { className: 'test-styles-foo test-styles-bar' });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-
-      it('converts style prop single element array to className prop', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { style: [styles.foo] });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 } });
-          `,
-          to: `
-            React.createElement('div', { className: 'test-styles-foo' });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 } });
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-      });
-
-      it('appends converted style prop elements to existing className with string value', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { className: 'baz', style: [styles.foo, styles.bar] });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            React.createElement('div', { className: 'baz test-styles-foo test-styles-bar' });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-
-      it('appends converted style prop elements to existing className with identifier value', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { className: baz, style: [styles.foo, styles.bar] });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            React.createElement('div', { className: __cx(baz, 'test-styles-foo', 'test-styles-bar') });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-
-            var __cx = require("classnames");
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-
-      it('appends converted style prop elements to existing className with function call value', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { className: baz(42), style: [styles.foo, styles.bar] });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            React.createElement('div', { className: __cx(baz(42), 'test-styles-foo', 'test-styles-bar') });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-
-            var __cx = require("classnames");
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-
-      it('properly handles a hash-typed style prop element', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { className: baz(42), style: [styles.foo, styles.bar, { boo: 0 }] });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            React.createElement('div', { className: __cx(baz(42), 'test-styles-foo', 'test-styles-bar'), style: { boo: 0 } });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-
-            var __cx = require("classnames");
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-
-      it('properly handles a identifier-typed style prop element', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { className: baz(42), style: [styles.foo, styles.bar, boo] });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            React.createElement('div', { className: __cx(baz(42), 'test-styles-foo', 'test-styles-bar'), style: boo });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-
-            var __cx = require("classnames");
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-
-      it('properly handles multiple other style prop elements', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { className: baz(42), style: [styles.foo, styles.bar, bam, { boo: 0 }] });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            React.createElement('div', { className: __cx(baz(42), 'test-styles-foo', 'test-styles-bar'), style: __assign({}, bam, { boo: 0 }) });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-
-            var __cx = require("classnames");
-            var __assign = require("react/lib/Object.assign");
-          `
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles-bar', 'padding: 0');
-      });
-    });
-
-    describe('with multiple stylesheets', () => {
-      it('places class names in order of appearance', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { className: 'baz', style: [styles1.foo, styles2.xyz, styles1.bar, bam] });
-
-            var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-            var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
-          `,
-          to: `
-            React.createElement('div', { className: 'baz test-styles1-foo test-styles2-xyz test-styles1-bar', style: bam });
-
-            var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-            var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
-          `
-        });
-
-        testStyleRule(css, 'test-styles1-foo', 'margin: 0');
-        testStyleRule(css, 'test-styles1-bar', 'padding: 0');
-        testStyleRule(css, 'test-styles2-xyz', 'padding: 10');
-      });
-    });
-
-    describe('with compressClassNames option set to true', () => {
-      var {clearCache} = require('../lib/compressClassName');
-
-      beforeEach(() => {
-        clearCache({});
-      });
-
-      it('compresses class names', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { className: 'baz', style: [styles1.foo, styles2.xyz, styles1.bar, bam] });
-
-            var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-            var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
-          `,
-          to: `
-            React.createElement('div', { className: 'baz _0 _1 _2', style: bam });
-
-            var styles1 = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-            var styles2 = StyleSheet.create({ xyz: { padding: 10 } });
-          `,
-          options: {
-            compressClassNames: true
-          }
-        });
-
-        testStyleRule(css, '_0', 'margin: 0');
-        testStyleRule(css, '_2', 'padding: 0');
-        testStyleRule(css, '_1', 'padding: 10');
-      });
-    });
-
-    describe('with vendorPrefixes option set to true', () => {
-      it('adds vendor prefixes', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { style: styles.foo });
-
-            var styles = StyleSheet.create({ foo: { flex: 1 } });
-          `,
-          to: `
-            React.createElement('div', { className: 'test-styles-foo' });
-
-            var styles = StyleSheet.create({ foo: { flex: 1 } });
-          `,
-          options: {
-            vendorPrefixes: true
-          }
-        });
-
-        testStyleRule(css, 'test-styles-foo', 'flex: 1');
-        testStyleRule(css, 'test-styles-foo', '-webkit-flex: 1');
-        testStyleRule(css, 'test-styles-foo', '-ms-flex: 1');
-      });
-    });
-
-    describe('with minify option set to true', () => {
-      it('minifies css', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { style: [styles.foo, styles.bar] });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          to: `
-            React.createElement('div', { className: 'test-styles-foo test-styles-bar' });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 }, bar: { padding: 0 } });
-          `,
-          options: {
-            minify: true
-          }
-        });
-
-        assert.equal(css, '.test-styles-foo{margin:0}.test-styles-bar{padding:0}');
-      });
-    });
-
-    describe('with removeStyleSheetDefinitions option set to true', () => {
-      it('removes stylesheet definitions', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { style: styles.foo });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 } });
-          `,
-          to: `
-            React.createElement('div', { className: 'test-styles-foo' });
-          `,
-          options: {
-            removeStyleSheetDefinitions: true
-          }
-        });
-      });
-    });
-
-    describe('with filename option provided', () => {
-      it('respects filename when generating class names', () => {
-        const css = testTransformed({
-          from: `
-            React.createElement('div', { style: styles.foo });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 } });
-          `,
-          to: `
-            React.createElement('div', { className: 'x_y_js-styles-foo' });
-
-            var styles = StyleSheet.create({ foo: { margin: 0 } });
-          `,
-          options: {
-            filename: 'x/y.js'
-          }
-        });
-
-        testStyleRule(css, 'x_y_js-styles-foo', 'margin: 0');
-      });
+      testStyleRule(css, 'x_y_js-styles-foo', 'margin: 0');
     });
   });
 });
@@ -1038,7 +204,7 @@ describe('Extractor.transformFileSync', () => {
   });
 
   it('works with options argument', () => {
-    const {code, css} = Extractor.transformFileSync('test/fixtures/Button.js', { foo: 'bar' });
+    const {code, css} = Extractor.transformFileSync('test/fixtures/Button.js', { vendorPrefixes: true });
 
     assert(typeof code === 'string');
     assert(typeof css === 'string');
@@ -1204,7 +370,7 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
           color: 'red',
           padding: 10
         },
-        pseudoClasses: {},
+        selectors: {},
         mediaQueries: {},
       }
     });
@@ -1217,8 +383,8 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
     }, {
       foo: {
         rules: {},
-        pseudoClasses: {
-          hover: {
+        selectors: {
+          ':hover': {
             rules: {
               color: 'red',
               padding: 10
@@ -1244,8 +410,8 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
           color: 'green',
           padding: 15
         },
-        pseudoClasses: {
-          hover: {
+        selectors: {
+          ':hover': {
             rules: {
               color: 'red',
               padding: 10
@@ -1275,8 +441,8 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
           color: 'green',
           padding: 15
         },
-        pseudoClasses: {
-          hover: {
+        selectors: {
+          ':hover': {
             rules: {
               color: 'blue',
               padding: 10,
@@ -1303,8 +469,8 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
           color: 'green',
           padding: 15
         },
-        pseudoClasses: {
-          hover: {
+        selectors: {
+          ':hover': {
             rules: {
               color: 'red',
               padding: 10
@@ -1325,16 +491,16 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
     }, {
       foo: {
         rules: {},
-        pseudoClasses: {},
+        selectors: {},
         mediaQueries: {
           media: {
             rules: {
               color: 'red',
               padding: 10
             },
-            pseudoClasses: {}
+            selectors: {}
           }
-        },
+        }
       }
     });
 
@@ -1348,16 +514,16 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
     }, {
       foo: {
         rules: {},
-        pseudoClasses: {},
+        selectors: {},
         mediaQueries: {
           media: {
             rules: {
               color: 'red',
               padding: 10
             },
-            pseudoClasses: {}
+            selectors: {}
           }
-        },
+        }
       }
     });
 
@@ -1378,16 +544,16 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
           color: 'green',
           padding: 15
         },
-        pseudoClasses: {},
+        selectors: {},
         mediaQueries: {
           media: {
             rules: {
               color: 'red',
               padding: 10
             },
-            pseudoClasses: {}
+            selectors: {}
           }
-        },
+        }
       }
     });
 
@@ -1412,15 +578,15 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
           color: 'green',
           padding: 15
         },
-        pseudoClasses: {},
+        selectors: {},
         mediaQueries: {
           media: {
             rules: {
               color: 'red',
               padding: 10
             },
-            pseudoClasses: {
-              hover: {
+            selectors: {
+              ':hover': {
                 rules: {
                   color: 'blue',
                   padding: 5
@@ -1428,7 +594,7 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
               }
             }
           }
-        },
+        }
       }
     });
 
@@ -1457,15 +623,15 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
           color: 'green',
           padding: 15
         },
-        pseudoClasses: {},
+        selectors: {},
         mediaQueries: {
           media: {
             rules: {
               color: 'red',
               padding: 10
             },
-            pseudoClasses: {
-              hover: {
+            selectors: {
+              ':hover': {
                 rules: {
                   color: 'blue',
                   margin: 1,
@@ -1474,7 +640,7 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
               }
             }
           }
-        },
+        }
       }
     });
 
@@ -1511,8 +677,8 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
           color: 'green',
           padding: 15
         },
-        pseudoClasses: {
-          hover: {
+        selectors: {
+          ':hover': {
             rules: {
               color: 'blue',
               margin: 1,
@@ -1526,8 +692,8 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
               color: 'red',
               padding: 10
             },
-            pseudoClasses: {
-              hover: {
+            selectors: {
+              ':hover': {
                 rules: {
                   color: 'blue',
                   margin: 1,
@@ -1536,7 +702,7 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
               }
             }
           }
-        },
+        }
       }
     });
 
@@ -1553,7 +719,11 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
           padding: 10,
           ':hover': {
             color: 'blue',
-            padding: 5
+            padding: 5,
+            ':active': {
+              color: 'red',
+              padding: 10
+            }
           }
         }
       },
@@ -1567,8 +737,8 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
           color: 'green',
           padding: 15
         },
-        pseudoClasses: {
-          hover: {
+        selectors: {
+          ':hover': {
             rules: {
               color: 'blue',
               margin: 1,
@@ -1582,16 +752,142 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
               color: 'red',
               padding: 10
             },
-            pseudoClasses: {
-              hover: {
+            selectors: {
+              ':hover': {
                 rules: {
                   color: 'blue',
                   padding: 5
                 }
+              },
+              ':hover:active': {
+                rules: {
+                  color: 'red',
+                  padding: 10
+                }
               }
             }
           }
+        }
+      }
+    });
+
+    testValidInput({
+      foo: {
+        color: 'green',
+        padding: 15,
+        ':hover': {
+          color: 'black',
+          margin: 1,
+          ':active': {
+            color: 'white'
+          }
+        }
+      }
+    }, {
+      foo: {
+        rules: {
+          color: 'green',
+          padding: 15
         },
+        selectors: {
+          ':hover': {
+            rules: {
+              color: 'black',
+              margin: 1
+            }
+          },
+          ':hover:active': {
+            rules: {
+              color: 'white'
+            }
+          }
+        },
+        mediaQueries: {}
+      }
+    });
+
+    testValidInput({
+      foo: {
+        color: 'green',
+        padding: 15,
+        '[disabled]': {
+          color: 'black',
+          margin: 1,
+          ':active': {
+            color: 'white'
+          }
+        }
+      }
+    }, {
+      foo: {
+        rules: {
+          color: 'green',
+          padding: 15
+        },
+        selectors: {
+          '[disabled]': {
+            rules: {
+              color: 'black',
+              margin: 1
+            }
+          },
+          '[disabled]:active': {
+            rules: {
+              color: 'white'
+            }
+          }
+        },
+        mediaQueries: {}
+      }
+    });
+
+    testValidInput({
+      'foo[disabled]': {
+        color: 'green',
+        padding: 15,
+        ':active': {
+          color: 'white'
+        }
+      }
+    }, {
+      foo: {
+        rules: {
+        },
+        selectors: {
+          '[disabled]': {
+            rules: {
+              color: 'green',
+              padding: 15
+            }
+          },
+          '[disabled]:active': {
+            rules: {
+              color: 'white'
+            }
+          }
+        },
+        mediaQueries: {}
+      }
+    });
+
+    testValidInput({
+      'foo[disabled]:active': {
+        color: 'green',
+        padding: 15
+      }
+    }, {
+      foo: {
+        rules: {
+        },
+        selectors: {
+          '[disabled]:active': {
+            rules: {
+              color: 'green',
+              padding: 15
+            }
+          }
+        },
+        mediaQueries: {}
       }
     });
 
@@ -1649,8 +945,8 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
           margin: 0,
           fontFamily: 'Arial,Verdana,sans-serif'
         },
-        pseudoClasses: {
-          'first-child': {
+        selectors: {
+          ':first-child': {
             rules: {
               border: 'none',
               margin: 1
@@ -1664,14 +960,14 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
               display: 'inline',
               padding: 0
             },
-            pseudoClasses: {
-              focus: {
+            selectors: {
+              ':focus': {
                 rules: {
                   cursor: 'pointer',
                   fontSize: 12
                 }
               },
-              hover: {
+              ':hover': {
                 rules: {
                   margin: 0
                 }
@@ -1683,8 +979,8 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
               lineHeight: 1.53,
               display: 'inline-block'
             },
-            pseudoClasses: {
-              focus: {
+            selectors: {
+              ':focus': {
                 rules: {
                   outline: 'none'
                 }
@@ -1698,8 +994,8 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
           border: 'solid 1px black',
           padding: 15
         },
-        pseudoClasses: {
-          hover: {
+        selectors: {
+          ':hover': {
             rules: {
               borderColor: '#333',
               color: 'blue'
@@ -1710,24 +1006,24 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
       },
       baz: {
         rules: {},
-        pseudoClasses: {},
+        selectors: {},
         mediaQueries: {
           'media only screen and (min-width: 120px)': {
             rules: {
               color: 'red'
             },
-            pseudoClasses: {}
+            selectors: {}
           }
         }
       },
       bam: {
         rules: {},
-        pseudoClasses: {},
+        selectors: {},
         mediaQueries: {
           'media only screen and (min-width: 120px)': {
             rules: {},
-            pseudoClasses: {
-              active: {
+            selectors: {
+              ':active': {
                 rules: {
                   color: 'green'
                 }
@@ -1763,22 +1059,17 @@ describe('Extractor.transformStyleSheetObjectIntoSpecification', () => {
     testInvalidInput({ foo: { '@media1': { '@media2': {} } } },               /media queries cannot be nested into each other/);
     testInvalidInput({ foo: { '@media1': { ':hover': { '@media2': {} } } } }, /media queries cannot be nested into each other/);
 
-    testInvalidInput({ foo: { ':hover': { '@media': {} } } }, /media queries cannot be nested into pseudo-classes/);
-    testInvalidInput({ 'foo:hover': { '@media': {} } },       /media queries cannot be nested into pseudo-classes/);
-
-    testInvalidInput({ foo: { ':hover': { ':focus': {} } } },               /pseudo-classes cannot be nested into each other/);
-    testInvalidInput({ '@media': { 'foo:hover': { ':focus': {} } } },       /pseudo-classes cannot be nested into each other/);
-    testInvalidInput({ foo: { '@media': { ':hover': { ':focus': {} } } } }, /pseudo-classes cannot be nested into each other/);
+    testInvalidInput({ foo: { ':hover': { '@media': {} } } }, /media queries cannot be nested into selectors/);
+    testInvalidInput({ 'foo:hover': { '@media': {} } },       /media queries cannot be nested into selectors/);
 
     testInvalidInput({ foo: { bar: {} } },                /value must be a number or a string/);
     testInvalidInput({ foo: { ':hover': { bar: {} } } },  /value must be a number or a string/);
     testInvalidInput({ foo: { '@media': { bar: {} } } },  /value must be a number or a string/);
 
-    testInvalidInput({ ':hover': {} },                /stand-alone pseudo-classes are not allowed at the top-level/);
-    testInvalidInput({ '@media1': { ':hover': {} } }, /stand-alone pseudo-classes are not allowed in top-level media queries/);
+    testInvalidInput({ ':hover': {} },                /stand-alone selectors are not allowed at the top-level/);
+    testInvalidInput({ '@media1': { ':hover': {} } }, /stand-alone selectors are not allowed in top-level media queries/);
 
     testInvalidInput({ 'foo bar': {} },     /style name is invalid/);
-    testInvalidInput({ 'foo:bar baz': {} }, /pseudo-class name is invalid/);
   });
 });
 
@@ -1822,14 +1113,14 @@ describe('Extractor.transformSpecificationIntoCSS', () => {
   it('works for pseudo-classes', () => {
     testCSS({
       foo: {
-        pseudoClasses: {
-          hover: {
+        selectors: {
+          ':hover': {
             rules: {
               margin: 10,
               padding: '0 20px'
             }
           },
-          'first-child': {
+          ':first-child': {
             rules: {
               marginTop: 0
             }
@@ -1855,8 +1146,8 @@ describe('Extractor.transformSpecificationIntoCSS', () => {
             rules: {
               marginTop: 0
             },
-            pseudoClasses: {
-              hover: {
+            selectors: {
+              ':hover': {
                 rules: {
                   margin: 10,
                   padding: '0 20px'
@@ -1940,8 +1231,8 @@ describe('Extractor.transformSpecificationIntoCSS', () => {
         rules: {
           margin: 0
         },
-        pseudoClasses: {
-          hover: {
+        selectors: {
+          ':hover': {
             rules: {
               padding: 0
             }
@@ -1966,8 +1257,8 @@ describe('Extractor.transformSpecificationIntoCSS', () => {
         rules: {
           margin: 0
         },
-        pseudoClasses: {
-          hover: {
+        selectors: {
+          ':hover': {
             rules: {
               padding: 0
             }

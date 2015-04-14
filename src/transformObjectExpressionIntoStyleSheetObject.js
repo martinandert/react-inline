@@ -52,6 +52,10 @@ function processProperty(key, value, result) {
     result[name] = {};
 
     processProperties(value.properties, result[name]);
+  } else if (t.isUnaryExpression(value, { prefix: true, operator: '-' })) {
+    assert(t.isLiteral(value.argument), 'invalid unary argument type');
+
+    result[name] = -value.argument.value;
   } else {
     assert(false, 'invalid value expression type');
   }

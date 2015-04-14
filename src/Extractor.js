@@ -9,19 +9,10 @@ export { default as transformSpecificationIntoCSS } from 'transformSpecification
 import fs from 'fs';
 import { transform as babelize } from 'babel-core';
 
-import defsPlugin from 'defsTransformer';
-import usesPlugin from 'usesTransformer';
+import transformAST from 'transformAST';
 import buildCSS from 'buildCSS';
 
-const hasStyleSheetCreateCall = /\bStyleSheet\s*\.\s*create\b/;
-const hasCx = /__cx\(/;
-const hasAssign = /__assign\(/;
-
 export function transform(source, options = {}) {
-  if (!hasStyleSheetCreateCall.test(source)) {
-    return { code: source, css: null };
-  }
-
   options.filename = options.filename || 'unknown';
 
   const tfs = babelize.transformers;
@@ -34,22 +25,11 @@ export function transform(source, options = {}) {
 
   const babelOptions = {
     ast: false,
-    plugins: [
-      defsPlugin(stylesheets, options),
-      usesPlugin(stylesheets, options)
-    ]
+    plugins: [transformAST(stylesheets, options)]
   };
 
   let code = babelize(source, babelOptions).code;
   let css = buildCSS(stylesheets, options);
-
-  if (hasCx.test(code)) {
-    code += '\n\nvar __cx = require("classnames");';
-  }
-
-  if (hasAssign.test(code)) {
-    code += '\n\nvar __assign = require("react/lib/Object.assign");';
-  }
 
   babelize.transformers = tfs;
   babelize.moduleFormatters.common = cmf;

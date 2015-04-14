@@ -3,6 +3,7 @@
  */
 
 import compressClassName from 'compressClassName';
+import splitSelector from 'splitSelector';
 
 const invalidChars = /[^_a-z0-9-]/ig;
 
@@ -18,7 +19,8 @@ export default function generateClassName(id, options) {
   result += id;
 
   if (options.compressClassNames) {
-    return compressClassName(result, options);
+    const [className, selector] = splitSelector(result);
+    return compressClassName(className, options) + selector;
   }
 
   return result;

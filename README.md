@@ -14,13 +14,10 @@ TODO: Write synopsis.
 Install via npm:
 
 ```bash
-% npm install react classnames --save
 % npm install react-inline --save-dev
 ```
 
-Note: [react](https://www.npmjs.com/package/react) and [classnames](https://www.npmjs.com/package/classnames) are peer dependencies of React Inline and will no longer be automatically installed in npm 3+.
-
-If you use React Inline's CLI to transform your styles and set the `--babelize` option, you need to also depend on the [babel-runtime](https://www.npmjs.com/package/babel-runtime) package:
+If you use React Inline's CLI to transform your styles and set the `--babelize` option, you need to install the [babel-runtime](https://www.npmjs.com/package/babel-runtime) package:
 
 ```bash
 % npm install babel-runtime --save

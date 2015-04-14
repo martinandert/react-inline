@@ -89,7 +89,8 @@ const styles = StyleSheet.create({
       cursor: 'not-allowed',
       filter: 'alpha(opacity=65)',
       boxShadow: 'none',
-      opacity: .65
+      opacity: .65,
+      pointerEvents: 'none'
     }
   },
 
@@ -270,8 +271,10 @@ const styles = StyleSheet.create({
 
   link: {
     fontWeight: 'normal',
-    color: '#337ab7',
     borderRadius: 0,
+    color: '#337ab7',
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
 
     ':focus': {
       borderColor: 'transparent',
@@ -295,6 +298,7 @@ const styles = StyleSheet.create({
 
     '[disabled]': {
       backgroundColor: 'transparent',
+      borderColor: 'transparent',
       boxShadow: 'none',
 
       ':focus': {

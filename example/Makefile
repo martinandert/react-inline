@@ -1,8 +1,8 @@
 BIN = ./node_modules/.bin
 
 RIX_CACHE_DIR = tmp/cache/react-inline/
-RIX_OPTIONS = --relativize --follow-requires --ignore-dependencies --ignore-node-core --cache-dir $(RIX_CACHE_DIR) --bundle ../public/bundle.css
-RIX_PRODUCTION_OPTIONS = $(RIX_OPTIONS) --vendor-prefixes --compress-class-names --minify
+RIX_OPTIONS = --relativize --follow-requires --ignore-dependencies --ignore-node-core --vendor-prefixes --bundle ../public/bundle.css --babelize --cache-dir $(RIX_CACHE_DIR)
+RIX_PRODUCTION_OPTIONS = $(RIX_OPTIONS) --compress-class-names --minify
 
 build: node_modules/
 	$(BIN)/react-inline-extract $(RIX_OPTIONS) src/ lib/ server client
@@ -16,7 +16,7 @@ watch: node_modules/
 webpack: build
 	$(BIN)/webpack --debug --output-pathinfo --colors
 
-wepack-production: build-production
+webpack-production: build-production
 	NODE_ENV=production $(BIN)/webpack --colors
 
 run: clean webpack
