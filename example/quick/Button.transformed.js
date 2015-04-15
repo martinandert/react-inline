@@ -6,7 +6,7 @@ const { oneOf, bool } = React.PropTypes;
 
 class Button extends React.Component {
   render() {
-    const { kind, size, busy, block, className } = this.props;
+    const { size, busy, block, className } = this.props;
     const classes = cx(styles.default, styles[size], block && styles.block, className);
 
     return <button {...this.props} className={classes} disabled={busy} />;

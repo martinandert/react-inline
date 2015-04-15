@@ -20,7 +20,7 @@ const { oneOf, bool } = React.PropTypes;
 
 class Button extends React.Component {
   render() {
-    const { kind, size, busy, block, className } = this.props;
+    const { size, busy, block, className } = this.props;
     const classes = cx(styles.default, styles[size], block && styles.block, className);
 
     return <button {...this.props} className={classes} disabled={busy} />;
@@ -99,7 +99,7 @@ const { oneOf, bool } = React.PropTypes;
 
 class Button extends React.Component {
   render() {
-    const { kind, size, busy, block, className } = this.props;
+    const { size, busy, block, className } = this.props;
     const classes = cx(styles.default, styles[size], block && styles.block, className);
 
     return <button {...this.props} className={classes} disabled={busy} />;
@@ -512,7 +512,7 @@ If you use React Inline's CLI to transform your styles and set the `--babelize` 
 
 ## Example
 
-If you just want to see some example output for a file, head over to [this repo's quick example](example/). There you will find the code for a simple button component together with its transformed version and CSS file (both with and without compressed class names).
+If you just want to see some example output for a file, head over to [this repo's quick example](example/quick/). There you will find the code for a simple button component together with its transformed version and CSS file (both with and without compressed class names).
 
 The code for a more sophisticated example can be found [in the repo's example directory](example/). After cloning this repo, see the example's README for more info on how to run it.
 
