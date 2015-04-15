@@ -1369,26 +1369,4 @@ describe('Extractor.transformSpecificationIntoCSS', () => {
       }
     `);
   });
-
-  it('ignores unused styles when ignoreUnused options is present', () => {
-    testCSS({
-      foo: {
-        used: true,
-        rules: {
-          margin: 0
-        }
-      },
-      bar: {
-        rules: {
-          padding: 0
-        }
-      }
-    }, css`
-      .foo {
-        margin: 0px;
-      }
-    `, {
-      ignoreUnused: true
-    });
-  });
 });

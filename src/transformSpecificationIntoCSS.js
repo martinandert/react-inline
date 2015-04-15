@@ -17,10 +17,6 @@ export default function transformSpecificationIntoCSS(spec, options = {}) {
 }
 
 function processStyle(css, name, spec, level, options) {
-  if (options.ignoreUnused && !spec.used) {
-    return;
-  }
-
   processRules(css, name, spec.rules, level, options);
   processSelectors(css, name, spec.selectors, level, options);
   processMediaQueries(css, name, spec.mediaQueries, level, options);
