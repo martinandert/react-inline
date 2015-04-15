@@ -30,7 +30,9 @@ If you use React Inline's CLI to transform your styles and set the `--babelize` 
 
 #### `StyleSheet.create(spec)`
 
-In order for React Inline to work for your components, you have to surround your inline style specifications with a `StyleSheet.create` call. This actually does nothing except providing a hook for the transformer.
+In order for React Inline to work, in your components, surround your inline style specifications with a `StyleSheet.create` call. This actually does nothing except providing a hook for the transformer.
+
+**Example**
 
 ```js
 var StyleSheet = require('react-inline');
@@ -56,9 +58,9 @@ The function returns an object with a `code` and a `css` property, holding the t
 ```js
 var Extractor = require('react-inline/extractor');
 
-var js = "var React = require('react');\nvar StyleSheet = require('react-inline'); ...";
+var js = "var StyleSheet = require('react-inline'); var React = ...";
 
-var result = Extractor.transform(js, { minify: true });
+var result = Extractor.transform(js, options);
 
 console.log(result.code); // => 'var React = require(...'
 console.log(result.css);  // => '.my-style {\n  border: solid 1px red; ...'
@@ -71,9 +73,9 @@ Available options to pass as second argument:
 | `filename`           | `"unknown"` | The name of the file for the source to transform. This value is used (in revised form) as a prefix when generating CSS class names.                                                                                                                                                                                                 |
 | `vendorPrefixes`     | `false`     | If truthy, the generated CSS is run through [autoprefixer](https://www.npmjs.com/package/autoprefixer) to add vendor prefixes to the rules. If set to an object, it is passed to autoprefixer as `options` argument.                                                                                                                |
 | `minify`             | `false`     | Set to `true` to enable minification of the generated CSS. The popular [clean-css](https://www.npmjs.com/package/clean-css) package is used for this.                                                                                                                                                                               |
-| `compressClassNames` | `false`     | Set to `true` to shorten/obfuscate generated CSS class names. A class name like `.my_file-my_styles_var-my_name` will so be converted to, e.g., `._bf`.                                                                                                                                                                             |
-| `mediaMap`           | `{}`        | This allows you to define media query shortcuts which are expanded on building the CSS. Example: using `{ phone: "media only screen and (max-width: 640px)" }` as value for this option, a stylesheet spec having `"@phone"` as a key, that key will be translated to `@media only screen and (max-width: 640px)` in the final CSS. |
-| `cacheDir`           | `null`      | If set to a string value, e.g. `"/tmp/cache/"`, the class name cache file will be persisted in a file in this directory. Otherwise, an in-memory cache is used.                                                                                                                                                                                 |
+| `compressClassNames` | `false`     | Set to `true` to shorten/obfuscate generated CSS class names. A class name like `"my_file-my_styles_var-my_name"` will so be converted to, e.g., `"_bf"`.                                                                                                                                                                             |
+| `mediaMap`           | `{}`        | This allows you to define media query shortcuts which are expanded on building the CSS. Example: using `{ phone: "media only screen and (max-width: 640px)" }` as value for this option and a stylesheet spec having `"@phone"` as a key, that key will be translated to `@media only screen and (max-width: 640px)` in the final CSS. |
+| `cacheDir`           | `null`      | If set to a string value, e.g. `"tmp/cache/"`, the class name cache will be persisted in a file in this directory. Otherwise, an in-memory cache is used.                                                                                                                                                                                 |
 
 
 #### `object Extractor.transformFile(string filename, [object options], function callback)`
@@ -116,7 +118,48 @@ Available options:
 
 ### CLI
 
-TODO
+React Inline comes with a command line interface which allows you to extract inline styles, generate CSS files and bundling them for your project in one go. The binary installed by npm is called `react-inline-extract`. A shorter alias is available under the name `rix`.
+
+Here's the output of `react-inline-extract --help`:
+
+```
+  Usage: react-inline-extract [options] <source directory> <output directory> [<module ID> [<module ID> ...]]
+
+  Options:
+
+    -h, --help                               output usage information
+    -V, --version                            output the version number
+    -c, --config [file]                      JSON configuration file (no file or - means STDIN)
+    -w, --watch                              Continually rebuild
+    -x, --extension <js | coffee | ...>      File extension to assume when resolving module identifiers
+    --relativize                             Rewrite all module identifiers to be relative
+    --follow-requires                        Scan modules for required dependencies
+    --ignore-dependencies                    Ignore modules defined as dependencies in package.json
+    --ignore-node-core                       Ignore Node's core modules ('fs', 'events', etc.)
+    --use-provides-module                    Respect @providesModules pragma in files
+    --cache-dir <directory>                  Alternate directory to use for disk cache
+    --no-cache-dir                           Disable the disk cache
+    --source-charset <utf8 | win1252 | ...>  Charset of source (default: utf8)
+    --output-charset <utf8 | win1252 | ...>  Charset of output (default: utf8)
+    -p, --vendor-prefixes                    Add vendor prefixes to generated CSS
+    -o, --compress-class-names               Compress class names in generated CSS
+    -m, --minify                             Minify generated CSS
+    -q, --media-map <name=query>             Add media query shortcut, e.g. "phone=media (max-width: 640px)"
+    -b, --bundle <file>                      Bundle all generated CSS into file (default: "bundle.css")
+    -B, --no-bundle                          Disable bundling CSS
+    -a, --babelize                           Add a Babel transformation step
+    -s, --babel-stage <stage>                Set Babel's experimental proposal stage (default: 2)
+```
+
+In a single sentence: the command finds modules with the given module identifiers in the source directory and places a transformed copy of each module into the output directory.
+
+**Example**
+
+```bash
+$ react-inline-extract --relativize --follow-requires -pom --bundle ../public/bundle.css src/ lib/ client server
+```
+
+React Inline's CLI is an extension of the [Commoner](https://www.npmjs.com/package/commoner) package. You can find more detailed usage instructions on [Commoner's GitHub page](https://github.com/reactjs/commoner).
 
 
 ## Stylesheet Specification Format
