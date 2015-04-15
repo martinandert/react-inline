@@ -5,7 +5,7 @@
 [![test coverage](https://img.shields.io/codeclimate/coverage/github/martinandert/react-inline.svg?style=flat-square)](https://codeclimate.com/github/martinandert/react-inline)
 [![npm version](https://img.shields.io/npm/v/react-inline.svg?style=flat-square)](https://www.npmjs.com/package/react-inline)
 
-Transform inline styles defined in JavaScript into CSS code and class names so they become available to the `className` prop of React elements.
+Transform inline styles defined in JavaScript modules into CSS code and class names so they become available to the `className` prop of React elements.
 
 ## A very quick example
 
