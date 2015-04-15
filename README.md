@@ -7,9 +7,7 @@
 
 Transform inline styles defined in JavaScript modules into CSS code and class names so they become available to the `className` prop of React elements.
 
-## A very quick example
-
-Given the following code for a button component ...
+Let's dive right into some code. Given the following button component ...
 
 ```jsx
 import React from 'react';
@@ -28,7 +26,7 @@ class Button extends React.Component {
 }
 
 Button.propTypes = {
-  size:   oneOf(['large', 'small', 'tiny']),
+  size:   oneOf(['large', 'small']),
   block:  bool,
   busy:   bool
 };
@@ -125,7 +123,7 @@ const styles = StyleSheet.create({
 ... and this css:
 
 ```css
-.Button_js-styles-default {
+.Button-styles-default {
   padding: 6px 12px;
   font-size: 14px;
   line-height: 1.5;
@@ -135,12 +133,12 @@ const styles = StyleSheet.create({
   color: #fff;
   background-color: #337ab7;
 }
-.Button_js-styles-default:focus {
+.Button-styles-default:focus {
   color: #fff;
   background-color: #286090;
   border-color: #122b40;
 }
-.Button_js-styles-default[disabled] {
+.Button-styles-default[disabled] {
   background-color: #337ab7;
   border-color: #2e6da4;
   cursor: not-allowed;
@@ -149,24 +147,24 @@ const styles = StyleSheet.create({
   pointer-events: none;
 }
 @media only screen and (max-width: 640px) {
-  .Button_js-styles-default {
+  .Button-styles-default {
     display: block;
     width: 100%;
   }
 }
-.Button_js-styles-large {
+.Button-styles-large {
   padding: 10px 16px;
   font-size: 18px;
   line-height: 1.33;
   border-radius: 6px;
 }
-.Button_js-styles-small {
+.Button-styles-small {
   padding: 5px 10px;
   font-size: 12px;
   line-height: 1.5;
   border-radius: 3px;
 }
-.Button_js-styles-block {
+.Button-styles-block {
   display: block;
   width: 100%;
 }
@@ -177,7 +175,7 @@ As you can see, React Inline has support for media queries, pseudo-classes, and 
 
 ## Usage
 
-React Inline provides both an API and a [command line interface](#cli). Typically, the CLI will be all you need. But let's start with the API first because it explains the CLI's foundation.
+React Inline provides both an API and a [command line interface](#cli). Typically, the CLI will be all you need. But let's start with the API first because it is the CLI's foundation.
 
 
 ### API
@@ -280,7 +278,7 @@ Available options:
 
 ### CLI
 
-React Inline comes with a command line interface which allows you to extract inline styles, generate CSS files and bundling them for your project in one go. The binary installed by npm is called `react-inline-extract`. A shorter alias is available under the name `rix`.
+React Inline comes with a command line interface which allows you to extract inline styles, generate CSS files, and bundle them up for all your project's files in one go. The binary installed by npm is called `react-inline-extract`. A shorter alias is available under the name `rix`.
 
 Here's the output of `react-inline-extract --help`:
 
