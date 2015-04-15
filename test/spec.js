@@ -299,7 +299,7 @@ describe('Extractor.transformFile', () => {
 
 describe('Extractor.transformObjectExpressionIntoStyleSheetObject', () => {
   var transform = Extractor.transformObjectExpressionIntoStyleSheetObject;
-  var babel = require('babel');
+  var babel = require('babel-core');
 
   function makeObjectExpression(source) {
     return babel.transform('var expr = ' + source).ast.program.body[0].declarations[0].init;
@@ -325,7 +325,7 @@ describe('Extractor.transformObjectExpressionIntoStyleSheetObject', () => {
     testValidInput('{ "foo foo": {} }', { 'foo foo': {} });
     testValidInput('{ foo: { bar: 123 } }', { foo: { bar: 123 } });
     testValidInput('{ foo: { bar: "baz" } }', { foo: { bar: 'baz' } });
-    //testValidInput('{ ["foo"]: {} }', { foo: {} });
+    testValidInput('{ ["foo"]: {} }', { foo: {} });
     testValidInput('{ undefined: {} }', { undefined: {} });
     testValidInput(`{
       foo: {
@@ -388,10 +388,10 @@ describe('Extractor.transformObjectExpressionIntoStyleSheetObject', () => {
     testInvalidInput('{ foo: { bar: Math.PI } }',   /invalid value expression type/);
     testInvalidInput('{ foo: { bar: undefined } }', /invalid value expression type/);
 
-    //testInvalidInput('{ [null]: {} }',  /key must be a string or identifier/);
-    //testInvalidInput('{ [123]: {} }',   /key must be a string or identifier/);
-    //testInvalidInput('{ [true]: {} }',  /key must be a string or identifier/);
-    //testInvalidInput('{ [false]: {} }', /key must be a string or identifier/);
+    testInvalidInput('{ [null]: {} }',  /key must be a string or identifier/);
+    testInvalidInput('{ [123]: {} }',   /key must be a string or identifier/);
+    testInvalidInput('{ [true]: {} }',  /key must be a string or identifier/);
+    testInvalidInput('{ [false]: {} }', /key must be a string or identifier/);
   });
 });
 

@@ -1,6 +1,6 @@
 BIN = ./node_modules/.bin
 BUILD_OPTIONS = --relativize --follow-requires --ignore-dependencies --ignore-node-core --cache-dir tmp/cache/build
-MOCHA_OPTIONS = --compilers js:babel/register -t 5000 -b -R spec test/spec.js
+MOCHA_OPTIONS = --compilers js:babel-core/register -t 5000 -b -R spec test/spec.js
 
 build: node_modules/
 	@bin/build $(BUILD_OPTIONS) src/ lib/ StyleSheet Extractor Bundler

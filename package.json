@@ -38,14 +38,12 @@
     "commoner": "martinandert/commoner#react-inline",
     "foreach": "^2.0.5",
     "glob": "^5.0.3",
-    "mkdirp": "^0.5.0",
-    "object-assign": "^2.0.0"
+    "mkdirp": "^0.5.0"
   },
   "peerDependencies": {
     "react": "^0.13.1"
   },
   "devDependencies": {
-    "babel": "^5.1.8",
     "babel-eslint": "^3.0.1",
     "eslint": "^0.19.0",
     "istanbul": "^0.3.13",
