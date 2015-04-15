@@ -30,7 +30,7 @@ If you use React Inline's CLI to transform your styles and set the `--babelize` 
 
 #### `StyleSheet.create(spec)`
 
-In order for React Inline to work, in your components, surround your inline style specifications with a `StyleSheet.create` call. This actually does nothing except providing a hook for the transformer.
+In order for React Inline to work, in your components, surround each inline style specification with a `StyleSheet.create` call. This actually does nothing except providing a hook for the transformer.
 
 **Example**
 
@@ -109,6 +109,14 @@ Extractor.transformFileSync('path/to/file.js', options); // => { code, css }
 
 Searches for CSS files in `sourceDir`, concatenates their contents, and writes the result to the return value of `path.join(sourceDir, filename)`.
 
+**Example**
+
+```js
+var Bundler = require('react-inline/bundler');
+
+Bundler.bundle('src/', '../public/bundle.css', options);
+```
+
 Available options:
 
 | Option         | Default       | Description                                                  |
@@ -123,32 +131,32 @@ React Inline comes with a command line interface which allows you to extract inl
 Here's the output of `react-inline-extract --help`:
 
 ```
-  Usage: react-inline-extract [options] <source directory> <output directory> [<module ID> [<module ID> ...]]
+Usage: react-inline-extract [options] <source directory> <output directory> [<module ID> [<module ID> ...]]
 
-  Options:
+Options:
 
-    -h, --help                               output usage information
-    -V, --version                            output the version number
-    -c, --config [file]                      JSON configuration file (no file or - means STDIN)
-    -w, --watch                              Continually rebuild
-    -x, --extension <js | coffee | ...>      File extension to assume when resolving module identifiers
-    --relativize                             Rewrite all module identifiers to be relative
-    --follow-requires                        Scan modules for required dependencies
-    --ignore-dependencies                    Ignore modules defined as dependencies in package.json
-    --ignore-node-core                       Ignore Node's core modules ('fs', 'events', etc.)
-    --use-provides-module                    Respect @providesModules pragma in files
-    --cache-dir <directory>                  Alternate directory to use for disk cache
-    --no-cache-dir                           Disable the disk cache
-    --source-charset <utf8 | win1252 | ...>  Charset of source (default: utf8)
-    --output-charset <utf8 | win1252 | ...>  Charset of output (default: utf8)
-    -p, --vendor-prefixes                    Add vendor prefixes to generated CSS
-    -o, --compress-class-names               Compress class names in generated CSS
-    -m, --minify                             Minify generated CSS
-    -q, --media-map <name=query>             Add media query shortcut, e.g. "phone=media (max-width: 640px)"
-    -b, --bundle <file>                      Bundle all generated CSS into file (default: "bundle.css")
-    -B, --no-bundle                          Disable bundling CSS
-    -a, --babelize                           Add a Babel transformation step
-    -s, --babel-stage <stage>                Set Babel's experimental proposal stage (default: 2)
+  -h, --help                               output usage information
+  -V, --version                            output the version number
+  -c, --config [file]                      JSON configuration file (no file or - means STDIN)
+  -w, --watch                              Continually rebuild
+  -x, --extension <js | coffee | ...>      File extension to assume when resolving module identifiers
+  --relativize                             Rewrite all module identifiers to be relative
+  --follow-requires                        Scan modules for required dependencies
+  --ignore-dependencies                    Ignore modules defined as dependencies in package.json
+  --ignore-node-core                       Ignore Node's core modules ('fs', 'events', etc.)
+  --use-provides-module                    Respect @providesModules pragma in files
+  --cache-dir <directory>                  Alternate directory to use for disk cache
+  --no-cache-dir                           Disable the disk cache
+  --source-charset <utf8 | win1252 | ...>  Charset of source (default: utf8)
+  --output-charset <utf8 | win1252 | ...>  Charset of output (default: utf8)
+  -p, --vendor-prefixes                    Add vendor prefixes to generated CSS
+  -o, --compress-class-names               Compress class names in generated CSS
+  -m, --minify                             Minify generated CSS
+  -q, --media-map <name=query>             Add media query shortcut, e.g. "phone=media (max-width: 640px)"
+  -b, --bundle <file>                      Bundle all generated CSS into file (default: "bundle.css")
+  -B, --no-bundle                          Disable bundling CSS
+  -a, --babelize                           Add a Babel transformation step
+  -s, --babel-stage <stage>                Set Babel's experimental proposal stage (default: 2)
 ```
 
 In a single sentence: the command finds modules with the given module identifiers in the source directory and places a transformed copy of each module into the output directory.
@@ -156,7 +164,9 @@ In a single sentence: the command finds modules with the given module identifier
 **Example**
 
 ```bash
-$ react-inline-extract --relativize --follow-requires -pom --bundle ../public/bundle.css src/ lib/ client server
+$ react-inline-extract --relativize --follow-requires \
+                       -pom --bundle ../public/bundle.css \
+                       src/ lib/ client server
 ```
 
 React Inline's CLI is an extension of the [Commoner](https://www.npmjs.com/package/commoner) package. You can find more detailed usage instructions on [Commoner's GitHub page](https://github.com/reactjs/commoner).
