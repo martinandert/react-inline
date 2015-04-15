@@ -1,36 +1,190 @@
 # React Inline
 
 [![build status](https://img.shields.io/travis/martinandert/react-inline.svg?style=flat-square)](https://travis-ci.org/martinandert/react-inline)
+[![code climate](https://img.shields.io/codeclimate/github/martinandert/react-inline.svg?style=flat-square)](https://codeclimate.com/github/martinandert/react-inline)
 [![test coverage](https://img.shields.io/codeclimate/coverage/github/martinandert/react-inline.svg?style=flat-square)](https://codeclimate.com/github/martinandert/react-inline)
 [![npm version](https://img.shields.io/npm/v/react-inline.svg?style=flat-square)](https://www.npmjs.com/package/react-inline)
 
-Inline styles for React components with a transformer to extract them into a CSS bundle.
+Transform inline styles defined in JavaScript into CSS code and class names so they become available to the `className` prop of React elements.
 
-TODO
+## A very quick example
 
+Given the following code for a button component ...
 
-## Installation
+```jsx
+import React from 'react';
+import StyleSheet from 'react-inline';
+import cx from 'classnames';
 
-Install via npm:
+const { oneOf, bool } = React.PropTypes;
 
-```bash
-% npm install react-inline --save-dev
+class Button extends React.Component {
+  render() {
+    const { kind, size, busy, block, className } = this.props;
+    const classes = cx(styles.default, styles[size], block && styles.block, className);
+
+    return <button {...this.props} className={classes} disabled={busy} />;
+  }
+}
+
+Button.propTypes = {
+  size:   oneOf(['large', 'small', 'tiny']),
+  block:  bool,
+  busy:   bool
+};
+
+export default Button;
+
+const styles = StyleSheet.create({
+  default: {
+    padding: '6px 12px',
+    fontSize: 14,
+    lineHeight: 1.5,
+    cursor: 'pointer',
+    border: '1px solid #2e6da4',
+    borderRadius: 4,
+    color: '#fff',
+    backgroundColor: '#337ab7',
+
+    '@media only screen and (max-width: 640px)': {
+      display: 'block',
+      width: '100%'
+    },
+
+    ':focus': {
+      color: '#fff',
+      backgroundColor: '#286090',
+      borderColor: '#122b40'
+    },
+
+    '[disabled]': {
+      backgroundColor: '#337ab7',
+      borderColor: '#2e6da4',
+      cursor: 'not-allowed',
+      boxShadow: 'none',
+      opacity: .65,
+      pointerEvents: 'none'
+    }
+  },
+
+  large: {
+    padding: '10px 16px',
+    fontSize: 18,
+    lineHeight: 1.33,
+    borderRadius: 6
+  },
+
+  small: {
+    padding: '5px 10px',
+    fontSize: 12,
+    lineHeight: 1.5,
+    borderRadius: 3
+  },
+
+  block: {
+    display: 'block',
+    width: '100%'
+  }
+});
 ```
 
-If you use React Inline's CLI to transform your styles and set the `--babelize` option, you need to install the [babel-runtime](https://www.npmjs.com/package/babel-runtime) package as an additional dependency:
+... React Inline turns that into this code ...
 
-```bash
-% npm install babel-runtime --save
+```jsx
+import React from 'react';
+import StyleSheet from 'react-inline';
+import cx from 'classnames';
+
+const { oneOf, bool } = React.PropTypes;
+
+class Button extends React.Component {
+  render() {
+    const { kind, size, busy, block, className } = this.props;
+    const classes = cx(styles.default, styles[size], block && styles.block, className);
+
+    return <button {...this.props} className={classes} disabled={busy} />;
+  }
+}
+
+Button.propTypes = {
+  size: oneOf(['large', 'small', 'tiny']),
+  block: bool,
+  busy: bool
+};
+
+export default Button;
+
+const styles = StyleSheet.create({
+  default: 'Button-styles-default',
+  large: 'Button-styles-large',
+  small: 'Button-styles-small',
+  block: 'Button-styles-block'
+});
 ```
+
+... and this css:
+
+```css
+.Button_js-styles-default {
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+  border: 1px solid #2e6da4;
+  border-radius: 4px;
+  color: #fff;
+  background-color: #337ab7;
+}
+.Button_js-styles-default:focus {
+  color: #fff;
+  background-color: #286090;
+  border-color: #122b40;
+}
+.Button_js-styles-default[disabled] {
+  background-color: #337ab7;
+  border-color: #2e6da4;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.65;
+  pointer-events: none;
+}
+@media only screen and (max-width: 640px) {
+  .Button_js-styles-default {
+    display: block;
+    width: 100%;
+  }
+}
+.Button_js-styles-large {
+  padding: 10px 16px;
+  font-size: 18px;
+  line-height: 1.33;
+  border-radius: 6px;
+}
+.Button_js-styles-small {
+  padding: 5px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.Button_js-styles-block {
+  display: block;
+  width: 100%;
+}
+```
+
+As you can see, React Inline has support for media queries, pseudo-classes, and attribute selectors.
 
 
 ## Usage
+
+React Inline provides both an API and a [command line interface](#cli). Typically, the CLI will be all you need. But let's start with the API first because it explains the CLI's foundation.
+
 
 ### API
 
 #### `StyleSheet.create(spec)`
 
-In order for React Inline to work, in your components, surround each inline style specification with a `StyleSheet.create` call. This actually does nothing except providing a hook for the transformer.
+In order for React Inline to work, in your components, surround each inline style specification with a `StyleSheet.create` call. This actually does nothing except providing a hook for the extractor.
 
 **Example**
 
@@ -340,7 +494,25 @@ Given you set `{ phone: 'media only screen and (max-width: 480px)', tablet: 'med
 }
 ```
 
+
+## Installation
+
+Install via npm:
+
+```bash
+% npm install react-inline --save-dev
+```
+
+If you use React Inline's CLI to transform your styles and set the `--babelize` option, you need to install the [babel-runtime](https://www.npmjs.com/package/babel-runtime) package as an additional dependency:
+
+```bash
+% npm install babel-runtime --save
+```
+
+
 ## Example
+
+If you just want to see some example output for a file, head over to [this repo's quick example](example/). There you will find the code for a simple button component together with its transformed version and CSS file (both with and without compressed class names).
 
 The code for a more sophisticated example can be found [in the repo's example directory](example/). After cloning this repo, see the example's README for more info on how to run it.
 

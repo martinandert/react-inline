@@ -20,14 +20,14 @@ class Root extends React.Component {
     buttons.push(<Button size="large" block={true} className={styles.blackButton}>large block button with custom styling</Button>);
 
     return (
-      <div>
-        <h1 className="headline">A white headline on black background</h1>
+      <div className={styles.root}>
+        <h1 className={styles.head}>A ugly-looking white headline on gray background</h1>
         <p>Use your browser's "Inspect Element" tool to see styles turned into class names.</p>
 
         <h2>Bootstrap's buttons</h2>
         <ul>
           {buttons.map((button, i) => {
-            return <li key={i}>{button}</li>;
+            return <li key={i} className={styles.listItem}>{button}</li>;
           })}
         </ul>
       </div>
@@ -37,11 +37,16 @@ class Root extends React.Component {
 
 const styles = StyleSheet.create({
   root: {
-    backgroundColor: '#eee'
+    padding: 50
   },
 
   head: {
-    color: 'white'
+    color: 'white',
+    backgroundColor: 'gray'
+  },
+
+  listItem: {
+    listStyle: 'none'
   },
 
   blackButton: {

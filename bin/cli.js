@@ -52,10 +52,6 @@ require('commoner')
         filename: id, cacheDir: this.cacheDir
       });
 
-      console.log(extractOptions);
-
-      throw new Error('foo')
-
       var result = extractor.transform(source, extractOptions);
 
       if (options.babelize) {

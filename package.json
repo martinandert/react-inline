@@ -1,7 +1,7 @@
 {
   "name": "react-inline",
   "version": "0.3.0",
-  "description": "Inline styles for React components with a transformer to extract them into a CSS bundle.",
+  "description": "Transform inline styles defined in JavaScript into CSS code and class names so they become available to the `className` prop of React elements.",
   "keywords": [
     "react",
     "style",

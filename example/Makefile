@@ -29,7 +29,7 @@ node_modules/:
 	npm install
 
 clean:
-	@rm -rf lib/ $(RIX_CACHE_DIR)
+	@rm -rf lib/ $(RIX_CACHE_DIR) public/bundle.css
 
 distclean: clean
 	@rm -rf tmp/ node_modules/
