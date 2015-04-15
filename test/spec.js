@@ -1,9 +1,61 @@
 import assert from 'assert';
 import os from 'os';
 import fs from 'fs';
+import path from 'path';
 import util from 'util';
+import rimraf from 'rimraf';
 
-var Extractor = require('../extractor');
+var StyleSheet  = require('../');
+var Bundler     = require('../bundler');
+var Extractor   = require('../extractor');
+
+describe('StyleSheet.create', () => {
+  it('returns its first argument', () => {
+    assert.strictEqual(StyleSheet.create('foo'), 'foo');
+  });
+});
+
+describe('Bundler.bundle', () => {
+  it('concatenates files', () => {
+    const srcDir      = 'test/fixtures/bundler';
+    const filename    = '../../../tmp/test/bundler/bundle.css';
+    const bundlePath  = path.join(srcDir, filename);
+    const bundleDir   = path.dirname(bundlePath);
+
+    rimraf.sync(bundleDir);
+
+    Bundler.bundle(srcDir, filename, {});
+
+    assert(fs.existsSync(bundlePath));
+
+    const bundleCSS = fs.readFileSync(bundlePath, { encoding: 'utf8' });
+
+    assert(bundleCSS.indexOf('.foo') > -1);
+    assert(bundleCSS.indexOf('.bar') > -1);
+    assert(bundleCSS.indexOf('.baz') > -1);
+  });
+
+  it('puts the bundle in the source dir by default', () => {
+    const srcDir = 'test/fixtures/bundler';
+    const bundlePath = path.join(srcDir, 'bundle.css');
+
+    if (fs.existsSync(bundlePath)) {
+      fs.unlinkSync(bundlePath);
+    }
+
+    Bundler.bundle(srcDir);
+
+    assert(fs.existsSync(bundlePath));
+
+    const bundleCSS = fs.readFileSync(bundlePath, { encoding: 'utf8' });
+
+    assert(bundleCSS.indexOf('.foo') > -1);
+    assert(bundleCSS.indexOf('.bar') > -1);
+    assert(bundleCSS.indexOf('.baz') > -1);
+
+    fs.unlinkSync(bundlePath);
+  });
+});
 
 describe('Extractor.transform', () => {
   const transform = Extractor.transform;

@@ -7,10 +7,8 @@ import fs     from 'fs';
 import glob   from 'glob';
 import mkdirp from 'mkdirp';
 
-export default { bundle };
-
-function bundle(sourceDir, fileName = 'bundle.css', options = {}) {
-  const bundleFile = path.join(sourceDir, fileName);
+function bundle(sourceDir, filename = 'bundle.css', options = {}) {
+  const bundleFile = path.join(sourceDir, filename);
 
   const globOptions = { cwd: sourceDir, realpath: true, ignore: bundleFile };
   const globPattern = options.globPattern || '**/*.css';
@@ -27,3 +25,5 @@ function bundle(sourceDir, fileName = 'bundle.css', options = {}) {
   mkdirp.sync(path.dirname(bundleFile));
   fs.writeFileSync(bundleFile, bundleCSS, writeOptions);
 }
+
+export default { bundle };

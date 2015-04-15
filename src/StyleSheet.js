@@ -2,10 +2,8 @@
  * @providesModule StyleSheet
  */
 
-class StyleSheet {
-  static create(spec) {
-    return spec;
-  }
+function create(spec) {
+  return spec;
 }
 
-export default StyleSheet;
+export { create };
