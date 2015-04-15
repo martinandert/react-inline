@@ -114,7 +114,7 @@ Searches for CSS files in `sourceDir`, concatenates their contents, and writes t
 ```js
 var Bundler = require('react-inline/bundler');
 
-Bundler.bundle('src/', '../public/bundle.css', options);
+Bundler.bundle('lib/', '../public/bundle.css', options);
 ```
 
 Available options:
@@ -174,18 +174,182 @@ React Inline's CLI is an extension of the [Commoner](https://www.npmjs.com/packa
 
 ## Stylesheet Specification Format
 
-TODO
+Here's what you can put inside the parentheses of `StyleSheet.create(...)`.
 
+**Simple Styles**
+
+```js
+{
+  myButton: {
+    border: 'solid 1px #ccc',
+    backgroundColor: 'lightgray',
+    display: 'inline-block'
+  },
+
+  myInput: {
+    width: '100%',
+    // ... etc.
+  }
+}
+```
+
+An inline style is not specified as a string. Instead it is specified with an object whose properties form the CSS ruleset for that style. A property's key is the camelCased version of the rule name, and the value is the rule's value, usually a string.
+
+There's also a shorthand notation for specifying pixel values, see [this React tip](http://facebook.github.io/react/tips/style-props-value-px.html) for more details.
+
+**Pseudo-Classes and Attribute Selectors**
+
+```js
+{
+  myButton: {
+    border: 'solid 1px #ccc',
+    backgroundColor: 'lightgray',
+    display: 'inline-block',
+    cursor: 'pointer',
+
+    ':focus': {
+      borderColor: '#aaa'
+    },
+
+    ':hover': {
+      borderColor: '#ddd',
+
+      ':active': {
+        borderColor: '#eee'
+      }
+    },
+
+    '[disabled]': {
+      cursor: 'not-allowed',
+      opacity: .5,
+
+      ':hover': {
+        backgroundColor: 'transparent'
+      }
+    }
+  }
+}
+```
+
+As you can see, pseudo-classes and attribute selectors can be nested arbitrarily deep. But you don't have to use nesting. Here is the example from above in the un-nested version:
+
+```js
+{
+  myButton: {
+    border: 'solid 1px #ccc',
+    backgroundColor: 'lightgray',
+    display: 'inline-block',
+    cursor: 'pointer'
+  },
+  'myButton:focus': {
+    borderColor: '#aaa'
+  },
+  'myButton:hover': {
+    borderColor: '#ddd'
+  },
+  'myButton:hover:active': {
+    borderColor: '#eee'
+  },
+  'myButton[disabled]': {
+    cursor: 'not-allowed',
+    opacity: .5
+  },
+  'myButton[disabled]:hover': {
+    backgroundColor: 'transparent'
+  }
+}
+```
+
+**Media Queries**
+
+```js
+{
+  myButton: {
+    border: 'solid 1px #ccc',
+    // ...
+  },
+
+  myInput: {
+    width: '100%',
+    // ...
+  },
+
+  '@media only screen and (max-width: 480px)': {
+    myButton: {
+      borderWidth: 0
+    },
+
+    myInput: {
+      fontSize: 14
+    }
+  },
+
+  '@media only screen and (max-width: 768px)': {
+    myButton: {
+      borderWidth: 2,
+
+      ':hover': {
+        borderWidth: 3
+      }
+    }
+  }
+}
+```
+
+Media queries can appear at the top-level (as shown above) or nested in the style:
+
+```js
+{
+  myButton: {
+    border: 'solid 1px #ccc',
+
+    '@media only screen and (max-width: 480px)': {
+      borderWidth: 0,
+
+      ':active': {
+        borderColor: 'blue'
+      }
+    },
+
+    '@media only screen and (max-width: 768px)': {
+      // ...
+    }
+  }
+}
+```
+
+Given you set `{ phone: 'media only screen and (max-width: 480px)', tablet: 'media only screen and (max-width: 768px)' }` as `mediaMap` option for the transformation, the above spec can be simplified to:
+
+```js
+{
+  myButton: {
+    border: 'solid 1px #ccc',
+
+    '@phone': {
+      borderWidth: 0,
+
+      ':active': {
+        borderColor: 'blue'
+      }
+    },
+
+    '@tablet': {
+      // ...
+    }
+  }
+}
+```
 
 ## Example
 
-TODO
+The code for a more sophisticated example can be found [in the repo's example directory](example/). After cloning this repo, see the example's README for more info on how to run it.
 
 
 ## Caveats
 
 * Just using `var styles = StyleSheet.create(...)` in your React modules and skipping the transformation step won't work. It's the transformation that is responsible for a) generating the real CSS, and b) turning your `StyleSheet.create(...)` calls into object literals holding the CSS class names so you can do `<foo className={styles.bar} />` without breaking React. But you are transpiling your JavaScript anyway to get these cool new ES6 features, aren't you?
-* Writing a gulp/grunt/browserify/webpack/you-name-it plugin for React Inline will be a hard nut to crack. This is due to the fact that in order to properly compress all CSS class names used in a project, the transformer needs some global context in form of a cache holding the generated class names for each file. And such a plugin needs to be isomorphic, i.e. it should produce the same output when transpiling for the client and the server environment.
+* Stylesheet specification cannot contain dynamic stuff, e.g. `backgroundImage: 'url(' + imgUrl + ')'`, because although the transformer parses the source input, it is neither compiled nor otherwise interpreted.
+* Writing a gulp/grunt/browserify/webpack/you-name-it plugin for React Inline will be a hard nut to crack. This is due to the fact that in order to properly compress all CSS class names used in a project, the transformer needs some global context in form of a cache holding the generated class names for each file. And such a plugin needs to be isomorphic, i.e. it must produce the same output when transpiling for the client and the server environment.
 
 
 ## Contributing
