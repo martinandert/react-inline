@@ -46,6 +46,36 @@ export default function(stylesheets, options) {
       });
 
       this.replaceWith(t.objectExpression(properties));
+    },
+
+    ImportDeclaration(node) {
+      if (node.source.value === 'react-inline') {
+        this.remove();
+      }
+    },
+
+    VariableDeclarator(node, parent) {
+      if (!t.isIdentifier(node.id, { name: 'StyleSheet' })) {
+        return;
+      }
+
+      if (!t.isCallExpression(node.init)) {
+        return;
+      }
+
+      if (!t.isIdentifier(node.init.callee, { name: 'require' })) {
+        return;
+      }
+
+      if (!t.isLiteral(node.init.arguments[0], { value: 'react-inline' })) {
+        return;
+      }
+
+      if (parent.declarations.length > 1) {
+        this.remove();
+      } else {
+        this.parentPath.remove();
+      }
     }
   });
 }

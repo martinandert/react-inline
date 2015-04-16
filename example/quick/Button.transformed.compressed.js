@@ -1,5 +1,5 @@
 var React = require('react');
-var StyleSheet = require('react-inline');
+
 var cx = require('classnames');
 
 const { oneOf, bool } = React.PropTypes;

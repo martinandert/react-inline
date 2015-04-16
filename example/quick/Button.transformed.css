@@ -1,4 +1,4 @@
-.Button_js-styles-default {
+.Button_original_js-styles-default {
   display: inline-block;
   padding: 6px 12px;
   margin-bottom: 0px;
@@ -8,13 +8,9 @@
   text-align: center;
   white-space: nowrap;
   vertical-align: middle;
-  -ms-touch-action: manipulation;
-      touch-action: manipulation;
+  touch-action: manipulation;
   cursor: pointer;
-  -webkit-user-select: none;
-     -moz-user-select: none;
-      -ms-user-select: none;
-          user-select: none;
+  user-select: none;
   background-image: none;
   border: 1px solid transparent;
   border-radius: 4px;
@@ -22,20 +18,20 @@
   background-color: #337ab7;
   border-color: #2e6da4;
 }
-.Button_js-styles-default:focus {
+.Button_original_js-styles-default:focus {
   color: #fff;
   background-color: #286090;
   border-color: #122b40;
   outline: thin dotted;
   outline-offset: -2px;
 }
-.Button_js-styles-default:hover {
+.Button_original_js-styles-default:hover {
   color: #fff;
   background-color: #286090;
   border-color: #204d74;
   text-decoration: none;
 }
-.Button_js-styles-default:active {
+.Button_original_js-styles-default:active {
   color: #fff;
   background-color: #286090;
   border-color: #204d74;
@@ -43,12 +39,12 @@
   outline: 0px;
   box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
 }
-.Button_js-styles-default:active:hover {
+.Button_original_js-styles-default:active:hover {
   color: #fff;
   background-color: #204d74;
   border-color: #122b40;
 }
-.Button_js-styles-default[disabled] {
+.Button_original_js-styles-default[disabled] {
   background-color: #337ab7;
   border-color: #2e6da4;
   cursor: not-allowed;
@@ -58,24 +54,24 @@
   pointer-events: none;
 }
 @media only screen and (max-width: 640px) {
-  .Button_js-styles-default {
+  .Button_original_js-styles-default {
     display: block;
     width: 100%;
   }
 }
-.Button_js-styles-large {
+.Button_original_js-styles-large {
   padding: 10px 16px;
   font-size: 18px;
   line-height: 1.33;
   border-radius: 6px;
 }
-.Button_js-styles-small {
+.Button_original_js-styles-small {
   padding: 5px 10px;
   font-size: 12px;
   line-height: 1.5;
   border-radius: 3px;
 }
-.Button_js-styles-block {
+.Button_original_js-styles-block {
   display: block;
   width: 100%;
 }

@@ -144,6 +144,52 @@ describe('Extractor.transform', () => {
     testStyleRule(css, 'test-styles-foo', 'content: \'x\'');
   });
 
+  it('removes ES6 module import', () => {
+    testTransformed({
+      from: `
+        import React from 'react';
+        import StyleSheet from 'react-inline';
+      `,
+      to: `
+        import React from 'react';
+      `
+    });
+  });
+
+  it('removes Node.JS require', () => {
+    testTransformed({
+      from: `
+        var React = require('react');
+        var StyleSheet = require('react-inline');
+      `,
+      to: `
+        var React = require('react');
+      `
+    });
+
+    testTransformed({
+      from: `
+        var React = require('react'), StyleSheet = require('react-inline'), foo = 'bar';
+      `,
+      to: `
+        var React = require('react'), foo = 'bar';
+      `
+    });
+
+    testTransformed({
+      from: `
+        var StyleSheet = 'foo';
+        var StyleSheet = foo('bar');
+        var StyleSheet = require('bar');
+      `,
+      to: `
+        var StyleSheet = 'foo';
+        var StyleSheet = foo('bar');
+        var StyleSheet = require('bar');
+      `
+    });
+  });
+
   describe('with compressClassNames option set to true', () => {
     var {clearCache} = require('../lib/compressClassName');
 

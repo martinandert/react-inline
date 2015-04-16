@@ -1,5 +1,5 @@
 var React = require('react');
-var StyleSheet = require('react-inline');
+
 var cx = require('classnames');
 
 const { oneOf, bool } = React.PropTypes;
@@ -20,10 +20,10 @@ Button.propTypes = {
 };
 
 const styles = {
-  default: 'Button_js-styles-default',
-  large: 'Button_js-styles-large',
-  small: 'Button_js-styles-small',
-  block: 'Button_js-styles-block'
+  default: 'Button_original_js-styles-default',
+  large: 'Button_original_js-styles-large',
+  small: 'Button_original_js-styles-small',
+  block: 'Button_original_js-styles-block'
 };
 
 module.exports = Button;
