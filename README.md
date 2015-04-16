@@ -104,7 +104,7 @@ class Button extends React.Component {
 }
 
 Button.propTypes = {
-  size: oneOf(['large', 'small', 'tiny']),
+  size: oneOf(['large', 'small']),
   block: bool,
   busy: bool
 };
