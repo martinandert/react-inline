@@ -1,32 +1,27 @@
-body {
-  padding: 0;
-  margin: 0;
-  font-family: Helvetica, Arial, "Lucida Grande", sans-serif;
-  font-size: 14px;
-  font-weight: 100;
-  background-color: white;
-  overflow-y: scroll;
-}
-
-div, span {
+* {
   box-sizing: border-box;
-  position: relative;
-  border: 0 solid black;
+}
+
+h1 {
+  background-color: #666;
+  color: white;
   margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  flex-shrink: 0;
+  padding: 10px;
+  font-size: 20px;
+  line-height: 1;
+  text-align: center;
 }
 
-h1, h2, h3, h4, h5, h6, p, ul, ol, li, table {
-  padding: 0;
-  margin: 0 0 10px;
+h2, h3, h4, h5, h6 {
+  margin-top: 45px;
+  margin-bottom: 15px;
 }
 
-h1:last-child, h2:last-child, h3:last-child, h4:last-child, h5:last-child, h6:last-child,
-p:last-child, ul:last-child, ol:last-child, li:last-child, table:last-child {
+div, p, ul, ol, li, table {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+div:last-child, p:last-child, ul:last-child, ol:last-child, li:last-child, table:last-child {
   margin-bottom: 0;
 }

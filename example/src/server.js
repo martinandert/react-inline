@@ -7,7 +7,7 @@ import errorHandler from 'errorhandler';
 import {normalize}  from 'path';
 
 import React  from 'react';
-import MyApp  from './client';
+import App    from './components/App';
 
 const app         = express();
 const port        = process.env.PORT || 3000;
@@ -23,7 +23,7 @@ app.use(express.static(publicPath, { index: false }));
 app.use(logger(live ? 'combined' : 'dev'));
 
 app.get('/', (req, res, next) => {
-  const html = React.renderToString(<MyApp />);
+  const html = React.renderToString(<App />);
   res.render('layout', { html });
 });
 

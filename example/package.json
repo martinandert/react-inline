@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "main": "./lib/server.js",
-  "browser": "./lib/client.js",
+  "scripts": {
+    "postinstall": "test \"$NODE_ENV\" = production && make webpack-production; true"
+  },
   "dependencies": {
     "babel-runtime": "^5.0.12",
     "classnames": "^1.2.0",
@@ -18,7 +20,7 @@
   },
   "devDependencies": {
     "expose-loader": "^0.6.0",
-    "react-inline": "..",
+    "react-inline": "*",
     "webpack": "^1.8.2"
   }
 }

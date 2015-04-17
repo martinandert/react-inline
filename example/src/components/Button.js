@@ -53,6 +53,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderColor: '#ccc',
 
+    '@phone': {
+      display: 'block',
+      width: '100%'
+    },
+
     ':focus': {
       color: '#333',
       backgroundColor: '#e6e6e6',

@@ -1,7 +1,7 @@
 BIN = ./node_modules/.bin
 
 RIX_CACHE_DIR = tmp/cache/react-inline/
-RIX_OPTIONS = --relativize --follow-requires --ignore-dependencies --ignore-node-core --vendor-prefixes --bundle ../public/bundle.css --babelize --cache-dir $(RIX_CACHE_DIR)
+RIX_OPTIONS = --relativize --follow-requires --ignore-dependencies --ignore-node-core --media-map "phone=media only screen and (max-width: 640px)" --vendor-prefixes --bundle ../public/bundle.css --babelize --cache-dir $(RIX_CACHE_DIR)
 RIX_PRODUCTION_OPTIONS = $(RIX_OPTIONS) --compress-class-names --minify
 
 build: node_modules/

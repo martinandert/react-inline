@@ -1,17 +1,7 @@
-import React  from 'react';
-import Root   from './components/Root';
+import React from 'react';
+import App from './components/App';
 
-class MyApp extends React.Component {
-  render() {
-    return (
-      <Root />
-    );
-  }
-}
+const mountNode = document.getElementById('mount');
 
-export default MyApp;
-
-if (typeof window !== 'undefined') {
-  React.initializeTouchEvents(true);
-  React.render(<MyApp />, document.getElementById('mount'));
-}
+React.initializeTouchEvents(true);
+React.render(<App />, mountNode);

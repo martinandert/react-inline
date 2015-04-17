@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta http-equiv="Content-Language" content="en">
-    <title>React Inline Example</title>
+    <title>React Inline Demo</title>
+    <link rel="stylesheet" type="text/css" href="<%= furl('/normalize.css') %>">
     <link rel="stylesheet" type="text/css" href="<%= furl('/global.css') %>">
     <link rel="stylesheet" type="text/css" href="<%= furl('/bundle.css') %>">
   </head>
 
   <body>
+    <h1>React Inline Demo</h1>
     <div id="mount"><%- html %></div>
     <script src="<%= furl('/bundle.js') %>"></script>
   </body>
