@@ -7,7 +7,7 @@
 
 Transform inline styles defined in JavaScript modules into static CSS code and class names so they become available to the `className` prop of React elements.
 
-If you're impatient, visit http://react-inline-demo.herokuapp.com/ for a live demo. The source code for this can be found [in the example directory](example/).
+If you're impatient, [visit the live demo](http://react-inline-demo.herokuapp.com/). The source code for it can be found [in the example directory](example/).
 
 Let's dive right into some code. Given the following button component ...
 
@@ -519,7 +519,7 @@ The code for a more sophisticated example can be found [in the repo's example di
 ## Caveats
 
 * Just using `var styles = StyleSheet.create(...)` in your React modules and skipping the transformation step won't work. It's the transformation that is responsible for a) generating the real CSS, and b) turning your `StyleSheet.create(...)` calls into object literals holding the CSS class names so you can do `<foo className={styles.bar} />` without breaking React. But you are transpiling your JavaScript anyway to get these cool new ES6 features, aren't you?
-* Stylesheet specification cannot contain dynamic stuff, e.g. `backgroundImage: 'url(' + imgUrl + ')'`, because although the transformer parses the source input, it is neither compiled nor otherwise interpreted.
+* Stylesheet specification cannot contain dynamic stuff, e.g. `backgroundImage: 'url(' + imgUrl + ')'`, because although the transformer parses the source input, it is neither compiled nor otherwise interpreted. If you really need to add dynamic styles, that's what the `style` attribute was made for. `style` also has the nice side-effect of taking precedence over class names.
 * Writing a gulp/grunt/browserify/webpack/you-name-it plugin for React Inline will be a hard nut to crack. This is due to the fact that in order to properly compress all CSS class names used in a project, the transformer needs some global context in form of a cache holding the generated class names for each file. And such a plugin needs to be isomorphic, i.e. it must produce the same output when transpiling for the client and the server environment.
 
 
