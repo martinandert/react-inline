@@ -6,7 +6,7 @@ class ButtonList extends React.Component {
   render() {
     return (
       <div>
-        <h2>Bootstrap's buttons</h2>
+        <h2>Bootstrap's buttons, realized with React Inline</h2>
 
         <p>Enumerating Bootstrap-style buttons of all types and sizes.</p>
 
