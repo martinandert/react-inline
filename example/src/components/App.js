@@ -9,7 +9,7 @@ class App extends React.Component {
   render() {
     return (
       <div className={styles.root}>
-        <p>Use your browser's "Inspect Element" tool to see that all inline styles were turned into class names.</p>
+        <p>Use your browser's "Inspect Element" tool to see inline styles turned into class names.</p>
         <p>You can find the code for all components <a href={url}>here</a>.</p>
 
         <MediaQueries />
