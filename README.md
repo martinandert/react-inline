@@ -7,6 +7,8 @@
 
 Transform inline styles defined in JavaScript modules into static CSS code and class names so they become available to the `className` prop of React elements.
 
+If you're impatient, visit http://react-inline-demo.herokuapp.com/ for a live demo. The source code for this can be found [in the example directory](example/).
+
 Let's dive right into some code. Given the following button component ...
 
 ```jsx
