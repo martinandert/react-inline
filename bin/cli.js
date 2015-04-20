@@ -3,7 +3,7 @@
 process.title = 'react-inline-extract';
 
 var babel     = require('babel-core');
-var merge     = require('react/lib/Object.assign');
+var merge     = require('object-assign');
 var info      = require('../package.json');
 var extractor = require('../extractor');
 var bundler   = require('../bundler');
