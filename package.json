@@ -1,6 +1,6 @@
 {
   "name": "react-inline",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Transform inline styles defined in JavaScript modules into static CSS code and class names so they become available to, e.g. the `className` prop of React elements.",
   "keywords": [
     "react",
