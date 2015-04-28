@@ -9,7 +9,7 @@ Tags:
 - [Internal]
 - [Polish]
 
-## Unreleased
+## 0.6.0 (April 28, 2015)
 
 - **New Feature**
   - Enabled simple arithmetic expressions and string concats on the right-hand side of style rules
