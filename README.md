@@ -177,7 +177,7 @@ As you can see, React Inline has support for media queries, pseudo-classes, and 
 
 ## Usage
 
-React Inline provides both an API and a [command line interface](#cli). Typically, the CLI will be all you need. But let's start with the API first because it is the CLI's foundation.
+React Inline provides both a Node.js API and a [command line interface](#cli). Typically, the CLI will be all you need. But let's start with the API first because it is the CLI's foundation.
 
 
 ### API
@@ -229,8 +229,8 @@ Available options to pass as second argument:
 | `minify`             | `false`     | Set to `true` to enable minification of the generated CSS. The popular [clean-css](https://www.npmjs.com/package/clean-css) package is used for this.                                                                                                                                                                               |
 | `compressClassNames` | `false`     | Set to `true` to shorten/obfuscate generated CSS class names. A class name like `"my_file-my_styles_var-my_name"` will so be converted to, e.g., `"_bf"`.                                                                                                                                                                             |
 | `mediaMap`           | `{}`        | This allows you to define media query shortcuts which are expanded on building the CSS. Example: using `{ phone: "media only screen and (max-width: 640px)" }` as value for this option and a stylesheet spec having `"@phone"` as a key, that key will be translated to `@media only screen and (max-width: 640px)` in the final CSS. |
+| `context`            | `null`      | If set to an object, each identifier found on the right-hand side of a style rule is substituted with the corresponding property value of this object.
 | `cacheDir`           | `null`      | If set to a string value, e.g. `"tmp/cache/"`, the class name cache will be persisted in a file in this directory. Otherwise, an in-memory cache is used.                                                                                                                                                                                 |
-
 
 #### `object Extractor.transformFile(string filename, [object options], function callback)`
 
@@ -307,6 +307,7 @@ Options:
   -o, --compress-class-names               Compress class names in generated CSS
   -m, --minify                             Minify generated CSS
   -q, --media-map <name=query>             Add media query shortcut, e.g. "phone=media (max-width: 640px)"
+  -t, --context <name=path>                Add context item (require'd from path) as name
   -b, --bundle <file>                      Bundle all generated CSS into file (default: "bundle.css")
   -B, --no-bundle                          Disable bundling CSS
   -a, --babelize                           Add a Babel transformation step
@@ -494,6 +495,21 @@ Given you set `{ phone: 'media only screen and (max-width: 480px)', tablet: 'med
 }
 ```
 
+**Expressions in Style Rules**
+
+You can do simple arithmetic and string concats on the right-hand side of style rules. Each identifier found is substituted with the corresponding property value of the `context` object provided as option.
+
+Example for a given context `{ MyColors: { green: '#00FF00' }, myUrl: 'path/to/image.png' }`:
+
+```js
+{
+  myButton: {
+    color: MyColors.green,
+    borderWidth: 42 + 'px',
+    backgroundImage: 'url(' + myUrl + ')'
+  }
+}
+```
 
 ## Installation
 
@@ -520,7 +536,7 @@ The code for a more sophisticated example can be found [in the repo's example di
 ## Caveats
 
 * Just using `var styles = StyleSheet.create(...)` in your React modules and skipping the transformation step won't work. It's the transformation that is responsible for a) generating the real CSS, and b) turning your `StyleSheet.create(...)` calls into object literals holding the CSS class names so you can do `<foo className={styles.bar} />` without breaking React. But you are transpiling your JavaScript anyway to get these cool new ES6 features, aren't you?
-* A stylesheet specification cannot contain dynamic stuff, e.g. `backgroundImage: 'url('+imgUrl+')'`, because although the transformer parses the source input, it is neither compiled nor otherwise interpreted. If you really need to add dynamic styles, that's what the `style` attribute/prop was made for. `style` also has the positive side-effect of taking precedence over class names.
+* Apart from simple arithmetic and string concats, a stylesheet specification cannot contain advanced dynamic stuff, because although the transformer parses the source input, it is not compiled. If you really need to add truly dynamic styles, that's what the `style` attribute/prop was made for. `style` also has the positive side-effect of taking precedence over class names.
 * Writing a gulp/grunt/browserify/webpack/you-name-it plugin for React Inline will be a hard nut to crack. This is due to the fact that in order to properly compress all CSS class names used in a project, the transformer needs some global context in form of a cache holding the generated class names for each file. And such a plugin needs to be isomorphic, i.e. it must produce the same output when transpiling for the client and the server environment.
 
 
