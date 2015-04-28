@@ -3,43 +3,54 @@
  */
 
 import assert from 'assert';
-import { types as t } from 'babel-core';
+import contextify from 'contextify';
+import extend from 'object-assign';
+import { print, types } from 'recast';
 
+const n = types.namedTypes;
 const isBlank = /^\s*$/;
 
-export default function transformObjectExpressionIntoStyleSheetObject(expr) {
-  assert(t.isObjectExpression(expr), 'must be a object expression');
+export default function transformObjectExpressionIntoStyleSheetObject(expr, context) {
+  assert(n.ObjectExpression.check(expr), 'must be a object expression');
+
+  context = contextify(extend({}, context));
+
+  context.evaluate = function(node) {
+    return this.run(print(node).code);
+  };
 
   let result = {};
 
   expr.properties.forEach((property) => {
-    processTopLevelProperty(property.key, property.value, result);
+    processTopLevelProperty(property.key, property.value, result, context);
   });
+
+  context.dispose();
 
   return result;
 }
 
-function processTopLevelProperty(key, value, result) {
+function processTopLevelProperty(key, value, result, context) {
   const name = keyToName(key);
 
-  assert(t.isObjectExpression(value), 'top-level value must be a object expression');
+  assert(n.ObjectExpression.check(value), 'top-level value must be a object expression');
 
   result[name] = {};
 
-  processProperties(value.properties, result[name]);
+  processProperties(value.properties, result[name], context);
 }
 
-function processProperties(properties, result) {
+function processProperties(properties, result, context) {
   properties.forEach((property) => {
-    processProperty(property.key, property.value, result);
+    processProperty(property.key, property.value, result, context);
   });
 }
 
-function processProperty(key, value, result) {
+function processProperty(key, value, result, context) {
   const name = keyToName(key);
 
-  if (t.isLiteral(value)) {
-    const val = value.value;
+  if (canEvaluate(value, context)) {
+    const val = context.evaluate(value);
 
     assert(typeof val === 'string' || typeof val === 'number', 'value must be a string or number');
 
@@ -48,12 +59,12 @@ function processProperty(key, value, result) {
     }
 
     result[name] = val;
-  } else if (t.isObjectExpression(value)) {
+  } else if (n.ObjectExpression.check(value)) {
     result[name] = {};
 
-    processProperties(value.properties, result[name]);
-  } else if (t.isUnaryExpression(value, { prefix: true, operator: '-' })) {
-    assert(t.isLiteral(value.argument), 'invalid unary argument type');
+    processProperties(value.properties, result[name], context);
+  } else if (n.UnaryExpression.check(value) && value.prefix === true && value.operator === '-') {
+    assert(n.Literal.check(value.argument), 'invalid unary argument type');
 
     result[name] = -value.argument.value;
   } else {
@@ -62,7 +73,23 @@ function processProperty(key, value, result) {
 }
 
 function keyToName(key) {
-  assert(t.isIdentifier(key) || t.isLiteral(key) && typeof key.value === 'string', 'key must be a string or identifier');
+  assert(n.Identifier.check(key) || n.Literal.check(key) && typeof key.value === 'string', 'key must be a string or identifier');
 
   return key.name || key.value;
 }
+
+function canEvaluate(expr, context) {
+  if (n.Literal.check(expr)) {
+    return true;
+  } else if (n.Identifier.check(expr) && context.hasOwnProperty(expr.name)) {
+    return true;
+  } else if (n.MemberExpression.check(expr)) {
+    return n.Identifier.check(expr.property) && canEvaluate(expr.object, context);
+  } else if (n.BinaryExpression.check(expr)) {
+    return canEvaluate(expr.left, context) && canEvaluate(expr.right, context);
+  }
+
+  return false;
+}
+
+

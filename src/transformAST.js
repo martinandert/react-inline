@@ -32,7 +32,7 @@ export default function(ast, stylesheets, options) {
 
       assert(expr, 'StyleSheet.create(...) call is missing an argument');
 
-      const obj   = transformObjectExpressionIntoStyleSheetObject(expr);
+      const obj   = transformObjectExpressionIntoStyleSheetObject(expr, options.context);
       const sheet = transformStyleSheetObjectIntoSpecification(obj);
 
       stylesheets[sheetId] = sheet;

@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import util from 'util';
 import rimraf from 'rimraf';
+import recast from 'recast';
 
 var StyleSheet  = require('../');
 var Bundler     = require('../bundler');
@@ -291,6 +292,18 @@ describe('Extractor.transform', () => {
       testStyleRule(css, 'x_y_js-styles-foo', 'margin: 0');
     });
   });
+
+  describe('with context option provided', () => {
+    it('respects context when generating css', () => {
+      const css = testTransformed({
+        from: 'var styles = StyleSheet.create({ foo: { margin: forty.two + "pt" } });',
+        to:   'var styles = { foo: "test-styles-foo" };',
+        options: { context: { forty: { two: 42 } } }
+      });
+
+      testStyleRule(css, 'test-styles-foo', 'margin: 42pt');
+    });
+  });
 });
 
 describe('Extractor.transformFileSync', () => {
@@ -345,16 +358,15 @@ describe('Extractor.transformFile', () => {
 
 describe('Extractor.transformObjectExpressionIntoStyleSheetObject', () => {
   var transform = Extractor.transformObjectExpressionIntoStyleSheetObject;
-  var babel = require('babel-core');
 
   function makeObjectExpression(source) {
-    return babel.transform('var expr = ' + source).ast.program.body[0].declarations[0].init;
+    return recast.parse('var _ = ' + source).program.body[0].declarations[0].init;
   }
 
-  function testValidInput(input, expected) {
+  function testValidInput(input, expected, context) {
     var expr = makeObjectExpression(input);
 
-    assert.deepEqual(transform(expr), expected);
+    assert.deepEqual(transform(expr, context), expected);
   }
 
   function testInvalidInput(input, message) {
@@ -371,7 +383,12 @@ describe('Extractor.transformObjectExpressionIntoStyleSheetObject', () => {
     testValidInput('{ "foo foo": {} }', { 'foo foo': {} });
     testValidInput('{ foo: { bar: 123 } }', { foo: { bar: 123 } });
     testValidInput('{ foo: { bar: "baz" } }', { foo: { bar: 'baz' } });
-    testValidInput('{ ["foo"]: {} }', { foo: {} });
+    testValidInput('{ foo: { bar: baz } }', { foo: { bar: 'BAZ' } }, { baz: 'BAZ' });
+    testValidInput('{ foo: { bar: "baz" + "bam" } }', { foo: { bar: 'bazbam' } });
+    testValidInput('{ foo: { bar: baz + " " + bam } }', { foo: { bar: 'BAZ BAM' } }, { baz: 'BAZ', bam: 'BAM' });
+    testValidInput('{ foo: { bar: a * (b + c) + "px" } }', { foo: { bar: '14px' } }, { a: 2, b: 3, c: 4 });
+    testValidInput('{ foo: { bar: a.b } }', { foo: { bar: 'c' } }, { a: { b: 'c' } });
+    //testValidInput('{ ["foo"]: {} }', { foo: {} });
     testValidInput('{ undefined: {} }', { undefined: {} });
     testValidInput(`{
       foo: {
@@ -430,14 +447,16 @@ describe('Extractor.transformObjectExpressionIntoStyleSheetObject', () => {
     testInvalidInput('{ foo: { bar: "" } }',    /string value cannot be blank/);
     testInvalidInput('{ foo: { bar: "  " } }',  /string value cannot be blank/);
 
-    testInvalidInput('{ foo: { bar: [] } }',        /invalid value expression type/);
-    testInvalidInput('{ foo: { bar: Math.PI } }',   /invalid value expression type/);
-    testInvalidInput('{ foo: { bar: undefined } }', /invalid value expression type/);
+    testInvalidInput('{ foo: { bar: [] } }',              /invalid value expression type/);
+    testInvalidInput('{ foo: { bar: Math.PI } }',         /invalid value expression type/);
+    testInvalidInput('{ foo: { bar: undefined } }',       /invalid value expression type/);
+    testInvalidInput('{ foo: { bar: missing + "bam" } }', /invalid value expression type/);
+    testInvalidInput('{ foo: { bar: baz[0] } }',          /invalid value expression type/);
 
-    testInvalidInput('{ [null]: {} }',  /key must be a string or identifier/);
-    testInvalidInput('{ [123]: {} }',   /key must be a string or identifier/);
-    testInvalidInput('{ [true]: {} }',  /key must be a string or identifier/);
-    testInvalidInput('{ [false]: {} }', /key must be a string or identifier/);
+    // testInvalidInput('{ [null]: {} }',  /key must be a string or identifier/);
+    // testInvalidInput('{ [123]: {} }',   /key must be a string or identifier/);
+    // testInvalidInput('{ [true]: {} }',  /key must be a string or identifier/);
+    // testInvalidInput('{ [false]: {} }', /key must be a string or identifier/);
   });
 });
 

@@ -14,12 +14,19 @@ function collectMediaMap(item, memo) {
   return memo;
 }
 
+function collectContextMap(item, memo) {
+  var nameAndPath = item.split('=');
+  memo[nameAndPath[0]] = require(nameAndPath[1]);
+  return memo;
+}
+
 require('commoner')
   .version(info.version)
   .option('-p, --vendor-prefixes', 'Add vendor prefixes to generated CSS')
   .option('-o, --compress-class-names', 'Compress class names in generated CSS')
   .option('-m, --minify', 'Minify generated CSS')
   .option('-q, --media-map <name=query>', 'Add media query shortcut, e.g. "phone=media (max-width: 640px)"', collectMediaMap, {})
+  .option('-t, --context <name=path>', 'Add context item (require\'d from path) as name', collectContextMap, {})
   .option('-b, --bundle <file>', 'Bundle all generated CSS into file (default: "bundle.css")', 'bundle.css')
   .option('-B, --no-bundle', 'Disable bundling CSS')
   .option('-a, --babelize', 'Add a Babel transformation step')
