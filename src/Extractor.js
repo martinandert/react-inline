@@ -7,7 +7,7 @@ export { default as transformStyleSheetObjectIntoSpecification } from 'transform
 export { default as transformSpecificationIntoCSS } from 'transformSpecificationIntoCSS';
 
 import fs from 'fs';
-import { transform as babelize } from 'babel-core';
+import { parse, print } from 'recast';
 
 import transformAST from 'transformAST';
 import buildCSS from 'buildCSS';
@@ -15,24 +15,13 @@ import buildCSS from 'buildCSS';
 export function transform(source, options = {}) {
   options.filename = options.filename || 'unknown';
 
-  const tfs = babelize.transformers;
-  const cmf = babelize.moduleFormatters.common;
-
-  babelize.transformers = {};
-  babelize.moduleFormatters.common = function() {};
-
   let stylesheets = {};
+  let ast = parse(source);
 
-  const babelOptions = {
-    ast: false,
-    plugins: [transformAST(stylesheets, options)]
-  };
+  transformAST(ast, stylesheets, options);
 
-  let code = babelize(source, babelOptions).code;
-  let css = buildCSS(stylesheets, options);
-
-  babelize.transformers = tfs;
-  babelize.moduleFormatters.common = cmf;
+  const code = print(ast).code;
+  const css = buildCSS(stylesheets, options);
 
   return { code, css };
 }

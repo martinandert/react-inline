@@ -3,21 +3,27 @@
  */
 
 import assert from 'assert';
-import { Transformer, types as t } from 'babel-core';
+import { visit, types } from 'recast';
 
 import transformObjectExpressionIntoStyleSheetObject from 'transformObjectExpressionIntoStyleSheetObject';
 import transformStyleSheetObjectIntoSpecification from 'transformStyleSheetObjectIntoSpecification';
 import generateClassName from 'generateClassName';
 
-export default function(stylesheets, options) {
-  return new Transformer('react-inline', {
-    CallExpression(node, parent) {
-      if (!this.get('callee').matchesPattern('StyleSheet.create')) {
-        return;
+const n = types.namedTypes;
+const b = types.builders;
+
+export default function(ast, stylesheets, options) {
+  visit(ast, {
+    visitCallExpression(path) {
+      const node = path.node;
+      const parent = path.parentPath.node;
+
+      if (!isStyleSheetCreate(node.callee)) {
+        return this.traverse(path);
       }
 
       assert(
-        t.isVariableDeclarator(parent),
+        n.VariableDeclarator.check(parent),
         'return value of StyleSheet.create(...) must be assigned to a variable'
       );
 
@@ -38,44 +44,48 @@ export default function(stylesheets, options) {
 
       Object.keys(sheet).forEach((styleId) => {
         const className = generateClassName(styleId, gcnOptions);
-        const key       = t.identifier(styleId);
-        const value     = t.literal(className);
-        const property  = t.property('init', key, value);
+        const key       = b.identifier(styleId);
+        const value     = b.literal(className);
+        const property  = b.property('init', key, value);
 
         properties.push(property);
       });
 
-      this.replaceWith(t.objectExpression(properties));
+      path.replace(b.objectExpression(properties));
+
+      return false;
     },
 
-    ImportDeclaration(node) {
-      if (node.source.value === 'react-inline') {
-        this.remove();
+    visitImportDeclaration(path) {
+      if (path.node.source.value === 'react-inline') {
+        path.prune();
+        return false;
       }
+
+      this.traverse(path);
     },
 
-    VariableDeclarator(node, parent) {
-      if (!t.isIdentifier(node.id, { name: 'StyleSheet' })) {
-        return;
+    visitVariableDeclarator(path) {
+      if (isRequireReactInline(path.node)) {
+        path.prune();
+        return false;
       }
 
-      if (!t.isCallExpression(node.init)) {
-        return;
-      }
-
-      if (!t.isIdentifier(node.init.callee, { name: 'require' })) {
-        return;
-      }
-
-      if (!t.isLiteral(node.init.arguments[0], { value: 'react-inline' })) {
-        return;
-      }
-
-      if (parent.declarations.length > 1) {
-        this.remove();
-      } else {
-        this.parentPath.remove();
-      }
+      this.traverse(path);
     }
   });
+}
+
+function isStyleSheetCreate(node) {
+  return n.MemberExpression.check(node) &&
+    n.Identifier.check(node.object) && node.object.name === 'StyleSheet' &&
+    (n.Identifier.check(node.property) && node.property.name === 'create' ||
+    n.Literal.check(node.property) && node.property.value === 'create');
+}
+
+function isRequireReactInline(node) {
+  return n.Identifier.check(node.id) && node.id.name === 'StyleSheet' &&
+    n.CallExpression.check(node.init) &&
+    n.Identifier.check(node.init.callee) && node.init.callee.name === 'require' &&
+    n.Literal.check(node.init.arguments[0]) && node.init.arguments[0].value === 'react-inline';
 }

@@ -1,5 +1,4 @@
 var React = require('react');
-
 var cx = require('classnames');
 
 const { oneOf, bool } = React.PropTypes;
@@ -14,16 +13,16 @@ class Button extends React.Component {
 }
 
 Button.propTypes = {
-  size: oneOf(['large', 'small']),
-  block: bool,
-  busy: bool
+  size:   oneOf(['large', 'small']),
+  block:  bool,
+  busy:   bool
 };
 
 const styles = {
-  default: 'Button_original_js-styles-default',
-  large: 'Button_original_js-styles-large',
-  small: 'Button_original_js-styles-small',
-  block: 'Button_original_js-styles-block'
+  default: "Button_original_js-styles-default",
+  large: "Button_original_js-styles-large",
+  small: "Button_original_js-styles-small",
+  block: "Button_original_js-styles-block"
 };
 
 module.exports = Button;
