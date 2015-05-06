@@ -1,7 +1,3 @@
-/*
- * @providesModule buildCSSRule
- */
-
 const isUnquotedContentValue = /^(normal|none|(\b(url\([^)]*\)|chapter_counter|attr\([^)]*\)|(no-)?(open|close)-quote|inherit)((\b\s*)|$|\s+))+)$/;
 const uppercaseLetter = /([A-Z])/g;
 

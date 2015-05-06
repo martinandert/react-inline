@@ -1,7 +1,3 @@
-/*
- * @providesModule MemoryCache
- */
-
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 let cache = {};

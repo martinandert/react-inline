@@ -1,9 +1,5 @@
-/*
- * @providesModule compressClassName
- */
-
-import DiskCache    from 'DiskCache';
-import MemoryCache  from 'MemoryCache';
+import DiskCache    from './utils/DiskCache';
+import MemoryCache  from './utils/MemoryCache';
 
 const cacheName = 'classnames';
 

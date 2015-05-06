@@ -1,16 +1,12 @@
-/*
- * @providesModule Extractor
- */
-
-export { default as transformObjectExpressionIntoStyleSheetObject } from 'transformObjectExpressionIntoStyleSheetObject';
-export { default as transformStyleSheetObjectIntoSpecification } from 'transformStyleSheetObjectIntoSpecification';
-export { default as transformSpecificationIntoCSS } from 'transformSpecificationIntoCSS';
+export { default as transformObjectExpressionIntoStyleSheetObject } from './transformObjectExpressionIntoStyleSheetObject';
+export { default as transformStyleSheetObjectIntoSpecification } from './transformStyleSheetObjectIntoSpecification';
+export { default as transformSpecificationIntoCSS } from './transformSpecificationIntoCSS';
 
 import fs from 'fs';
 import { parse, print } from 'recast';
 
-import transformAST from 'transformAST';
-import buildCSS from 'buildCSS';
+import transformAST from './transformAST';
+import buildCSS from './buildCSS';
 
 export function transform(source, options = {}) {
   options.filename = options.filename || 'unknown';

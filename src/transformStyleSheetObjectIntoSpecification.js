@@ -1,10 +1,6 @@
-/*
- * @providesModule transformStyleSheetObjectIntoSpecification
- */
-
 import assert from 'assert';
 import foreach from 'foreach';
-import splitSelector from 'splitSelector';
+import splitSelector from './utils/splitSelector';
 
 const isMediaQueryDeclaration = /^@/;
 const hasAttachedSelector     = /[^:\[]+[:\[]/;

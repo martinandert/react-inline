@@ -1,7 +1,3 @@
-/*
- * @providesModule splitSelector
- */
-
 export default function splitSelector(name) {
   const indexOfColon = name.indexOf(':');
   const indexOfBracket = name.indexOf('[');

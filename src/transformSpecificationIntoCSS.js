@@ -1,10 +1,6 @@
-/*
- * @providesModule transformSpecificationIntoCSS
- */
-
 import foreach from 'foreach';
-import buildCSSRule from 'buildCSSRule';
-import generateClassName from 'generateClassName';
+import buildCSSRule from './buildCSSRule';
+import generateClassName from './generateClassName';
 
 export default function transformSpecificationIntoCSS(spec, options = {}) {
   let css = [];

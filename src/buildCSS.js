@@ -1,11 +1,7 @@
-/*
- * @providesModule buildCSS
- */
-
 import autoprefixer from 'autoprefixer-core';
 import CleanCSS from 'clean-css';
 import foreach from 'foreach';
-import transformSpecificationIntoCSS from 'transformSpecificationIntoCSS';
+import transformSpecificationIntoCSS from './transformSpecificationIntoCSS';
 
 export default function(stylesheets, options) {
   let css = '';

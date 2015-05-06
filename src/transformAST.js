@@ -1,13 +1,9 @@
-/*
- * @providesModule transformAST
- */
-
 import assert from 'assert';
 import { visit, types } from 'recast';
 
-import transformObjectExpressionIntoStyleSheetObject from 'transformObjectExpressionIntoStyleSheetObject';
-import transformStyleSheetObjectIntoSpecification from 'transformStyleSheetObjectIntoSpecification';
-import generateClassName from 'generateClassName';
+import transformObjectExpressionIntoStyleSheetObject from './transformObjectExpressionIntoStyleSheetObject';
+import transformStyleSheetObjectIntoSpecification from './transformStyleSheetObjectIntoSpecification';
+import generateClassName from './generateClassName';
 
 const n = types.namedTypes;
 const b = types.builders;

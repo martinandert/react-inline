@@ -1,7 +1,3 @@
-/*
- * @providesModule transformObjectExpressionIntoStyleSheetObject
- */
-
 import assert from 'assert';
 import contextify from 'contextify';
 import extend from 'object-assign';
