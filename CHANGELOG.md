@@ -9,6 +9,11 @@ Tags:
 - [Internal]
 - [Polish]
 
+## 0.6.1 (May 6, 2015)
+
+- **Internal**
+  - Simplify library compilation
+
 ## 0.6.0 (April 28, 2015)
 
 - **New Feature**

@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "expose-loader": "^0.6.0",
-    "react-inline": "*",
+    "react-inline": "^0.6.1",
     "webpack": "^1.8.2"
   }
 }
