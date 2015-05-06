@@ -1,21 +1,31 @@
 BIN = ./node_modules/.bin
-BUILD_OPTIONS = --relativize --follow-requires --ignore-dependencies --ignore-node-core --cache-dir tmp/cache/build
-MOCHA_OPTIONS = --compilers js:babel-core/register -t 5000 -b -R spec test/spec.js
 
-build: node_modules/
-	@bin/build $(BUILD_OPTIONS) src/ lib/ StyleSheet Extractor Bundler
+SRC_JS = $(shell find src/ -name "*.js")
+LIB_JS = $(patsubst src/%.js,lib/%.js,$(SRC_JS))
+
+BABEL_ARGS = --stage 1 --loose all --optional runtime
+MOCHA_ARGS = --compilers js:babel-core/register -t 5000 -b -R spec test/spec.js
+
+build: node_modules/ $(LIB_JS)
+
+$(LIB_JS): lib/%.js: src/%.js
+	@mkdir -p $(dir $@)
+	@$(BIN)/babel $< --out-file $@ $(BABEL_ARGS)
+
+fast: node_modules/
+	@$(BIN)/babel src/ --out-dir lib/ $(BABEL_ARGS)
 
 watch: node_modules/
-	@bin/build $(BUILD_OPTIONS) --watch src/ lib/ StyleSheet Extractor Bundler
+	$(BIN)/babel src/ --out-dir lib/ $(BABEL_ARGS) --watch
 
 lint: node_modules/
 	@$(BIN)/eslint src/
 
 test: lint build
-	@NODE_ENV=test $(BIN)/mocha $(MOCHA_OPTIONS)
+	@NODE_ENV=test $(BIN)/mocha $(MOCHA_ARGS)
 
 test-cov: build
-	@NODE_ENV=test $(BIN)/istanbul cover $(BIN)/_mocha -- $(MOCHA_OPTIONS)
+	@NODE_ENV=test $(BIN)/istanbul cover $(BIN)/_mocha -- $(MOCHA_ARGS)
 
 node_modules/:
 	@npm install
@@ -26,7 +36,7 @@ clean:
 distclean: clean
 	@rm -rf tmp/ node_modules/
 
-push-example-to-heroku:
+publish-example:
 	@git push heroku `git subtree split --prefix example master`:master --force
 
 release-patch: test
@@ -46,4 +56,4 @@ define release
 	npm version $(1) -m 'release v%s'
 endef
 
-.PHONY: build watch lint test test-cov clean distclean push-example-to-heroku release-patch release-minor release-major publish
+.PHONY: build fast watch lint test test-cov clean distclean publish-example release-patch release-minor release-major publish
