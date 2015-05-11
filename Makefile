@@ -36,9 +36,6 @@ clean:
 distclean: clean
 	@rm -rf tmp/ node_modules/
 
-publish-example:
-	@git push heroku `git subtree split --prefix example master`:master --force
-
 release-patch: test
 	@$(call release,patch)
 
@@ -56,4 +53,4 @@ define release
 	npm version $(1) -m 'release v%s'
 endef
 
-.PHONY: build fast watch lint test test-cov clean distclean publish-example release-patch release-minor release-major publish
+.PHONY: build fast watch lint test test-cov clean distclean release-patch release-minor release-major publish

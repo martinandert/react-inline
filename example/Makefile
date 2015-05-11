@@ -34,4 +34,7 @@ clean:
 distclean: clean
 	@rm -rf tmp/ node_modules/
 
-.PHONY: build build-production watch webpack webpack-production run run-production clean distclean
+publish:
+	cap production deploy deploy:restart
+
+.PHONY: build build-production watch webpack webpack-production run run-production clean distclean publish

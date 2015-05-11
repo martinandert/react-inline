@@ -9,6 +9,11 @@ Tags:
 - [Internal]
 - [Polish]
 
+## Unreleased
+
+- **Internal**
+  - Move example away from Heroku
+
 ## 0.6.1 (May 6, 2015)
 
 - **Internal**
