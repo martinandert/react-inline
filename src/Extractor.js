@@ -12,14 +12,23 @@ export function transform(source, options = {}) {
   options.filename = options.filename || 'unknown';
 
   let stylesheets = {};
-  let ast = parse(source);
+  let ast = parse(source, {
+    sourceFileName: options.filename
+  });
 
   transformAST(ast, stylesheets, options);
 
-  const code = print(ast).code;
+  let printOptions = {};
+
+  if (options.sourceMapName) {
+    printOptions.sourceMapName = options.sourceMapName;
+  }
+
+  const result = print(ast, printOptions);
+  const { code, map } = result;
   const css = buildCSS(stylesheets, options);
 
-  return { code, css };
+  return { code, map, css };
 }
 
 export function transformFile(filename, options, callback) {

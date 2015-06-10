@@ -136,6 +136,15 @@ describe('Extractor.transform', () => {
     assert(css.indexOf('.unknown-styles-foo') > -1);
   });
 
+  it('returns a source map if sourceMapName is provided', () => {
+    const { map } = Extractor.transform('', {
+      filename: 'test.js',
+      sourceMapName: 'test.map'
+    });
+
+    assert.strictEqual(map.file, 'test.map');
+  });
+
   it('works with StyleSheet["create"](...)', () => {
     const css = testTransformed({
       from: 'var styles = StyleSheet["create"]({ foo: { content: "x" } });',
