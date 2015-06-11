@@ -1,3 +1,4 @@
+import postcss from 'postcss';
 import autoprefixer from 'autoprefixer-core';
 import CleanCSS from 'clean-css';
 import foreach from 'foreach';
@@ -25,9 +26,9 @@ export default function(stylesheets, options) {
 
   if (vp) {
     if (typeof vp === 'object') {
-      css = autoprefixer(vp).process(css).css;
+      css = postcss([autoprefixer(vp)]).process(css).css;
     } else {
-      css = autoprefixer.process(css).css;
+      css = postcss([autoprefixer]).process(css).css;
     }
   }
 
