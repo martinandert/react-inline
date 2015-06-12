@@ -231,6 +231,7 @@ Available options to pass as second argument:
 | `mediaMap`           | `{}`        | This allows you to define media query shortcuts which are expanded on building the CSS. Example: using `{ phone: "media only screen and (max-width: 640px)" }` as value for this option and a stylesheet spec having `"@phone"` as a key, that key will be translated to `@media only screen and (max-width: 640px)` in the final CSS. |
 | `context`            | `null`      | If set to an object, each identifier found on the right-hand side of a style rule is substituted with the corresponding property value of this object.
 | `cacheDir`           | `null`      | If set to a string value, e.g. `"tmp/cache/"`, the class name cache will be persisted in a file in this directory. Otherwise, an in-memory cache is used.                                                                                                                                                                                 |
+| `sourceMapName`           | `null`      | If set to a string value, a source map will be generated with the given name and returned as `map`, e.g. `result.map` in the example above.                                                                                                                                                                                 |
 
 #### `object Extractor.transformFile(string filename, [object options], function callback)`
 
