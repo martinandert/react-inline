@@ -9,10 +9,13 @@ Tags:
 - [Internal]
 - [Polish]
 
-## Unreleased
+## 0.6.2 (June 12, 2015)
 
+- **New Feature**
+  - Add support for source maps (mjohnston)
 - **Internal**
   - Move example away from Heroku
+  - Upgrade autoprefixer-core (mjohnston)
 
 ## 0.6.1 (May 6, 2015)
 
