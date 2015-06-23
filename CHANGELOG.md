@@ -9,6 +9,16 @@ Tags:
 - [Internal]
 - [Polish]
 
+## Unreleased
+
+- **Polish**
+  - Remove changelog from npm package
+
+## 0.6.3 (June 23, 2015)
+
+- **Internal**
+  - Fix broken release
+
 ## 0.6.2 (June 12, 2015)
 
 - **New Feature**
