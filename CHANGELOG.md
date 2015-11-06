@@ -9,8 +9,10 @@ Tags:
 - [Internal]
 - [Polish]
 
-## Unreleased
+## 0.6.4 (November 6, 2015)
 
+- **New Feature**
+  - Add `export default` to StyleSheet.js (b6pzeusbc54tvhw5jgpyw8pwz2x6gs)
 - **Polish**
   - Remove changelog from npm package
 
@@ -35,33 +37,33 @@ Tags:
 ## 0.6.0 (April 28, 2015)
 
 - **New Feature**
-  - Enabled simple arithmetic expressions and string concats on the right-hand side of style rules
-  - Added `context` options to Node.js API and CLI
+  - Enable simple arithmetic expressions and string concats on the right-hand side of style rules
+  - Add `context` options to Node.js API and CLI
 - **Documentation**
-  - Added CHANGELOG.md
-  - Updated README.md
+  - Add CHANGELOG.md
+  - Update README.md
 - **Internal**
-  - Switched from babel to recast for AST transform
+  - Switch from babel to recast for AST transform
 
 ## 0.5.0 (April 20, 2015)
 
 - **New Feature**
-  - Removed React dependency
+  - Remove React dependency
 - **Documentation**
-  - Updated README.md
+  - Update README.md
 
 ## 0.4.2 (April 17, 2015)
 
 - **Documentation**
-  - Added live demo at http://react-inline-demo.herokuapp.com/
-  - Updated README.md
+  - Add live demo at http://react-inline-demo.herokuapp.com/
+  - Update README.md
 
 ## 0.4.1 (April 16, 2015)
 
 - **New Feature**
-  - Removed 'react-inline' import/require when transforming
+  - Remove 'react-inline' import/require when transforming
 - **Documentation**
-  - Updated README.md
+  - Update README.md
 
 ## 0.4.0 (April 15, 2015)
 
