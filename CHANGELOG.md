@@ -9,6 +9,15 @@ Tags:
 - [Internal]
 - [Polish]
 
+## 0.7.0 (November 6, 2015)
+
+- **New Feature**
+  - Add support for Node.js v4 and v5
+- **Breaking Change**
+  - Remove support for Node.js v0.10
+- **Internal**
+  - Remove the Contextify dependency, use built-in VM module instead
+
 ## 0.6.4 (November 6, 2015)
 
 - **New Feature**
