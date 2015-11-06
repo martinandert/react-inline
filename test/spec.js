@@ -71,7 +71,7 @@ describe('Extractor.transform', () => {
 
   function testTransformed(spec) {
     const options   = makeOptions(spec.options);
-    const result    = transform(spec.from, options)
+    const result    = transform(spec.from, options);
     const actual    = squish(result.code);
     const expected  = squish(spec.to);
 
@@ -137,7 +137,7 @@ describe('Extractor.transform', () => {
   });
 
   it('returns a source map if sourceMapName is provided', () => {
-    const { map } = Extractor.transform('', {
+    const { map } = transform('var foo = 0;', {
       filename: 'test.js',
       sourceMapName: 'test.map'
     });
