@@ -1,7 +1,7 @@
 language: node_js
 node_js:
-  - node
-  - iojs-v1.2.0
+  - "0.10"
+  - "0.12"
 before_script: "npm install -g codeclimate-test-reporter"
 script: "make test-cov"
 after_script: "cat coverage/lcov.info | codeclimate"
