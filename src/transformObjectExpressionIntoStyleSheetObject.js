@@ -1,5 +1,5 @@
 import assert from 'assert';
-import contextify from 'contextify';
+import vm from 'vm';
 import extend from 'object-assign';
 import { print, types } from 'recast';
 
@@ -9,10 +9,10 @@ const isBlank = /^\s*$/;
 export default function transformObjectExpressionIntoStyleSheetObject(expr, context) {
   assert(n.ObjectExpression.check(expr), 'must be a object expression');
 
-  context = contextify(extend({}, context));
+  context = vm.createContext(extend({}, context));
 
   context.evaluate = function(node) {
-    return this.run(print(node).code);
+    return vm.runInContext(print(node).code, this);
   };
 
   let result = {};
@@ -20,8 +20,6 @@ export default function transformObjectExpressionIntoStyleSheetObject(expr, cont
   expr.properties.forEach((property) => {
     processTopLevelProperty(property.key, property.value, result, context);
   });
-
-  context.dispose();
 
   return result;
 }
