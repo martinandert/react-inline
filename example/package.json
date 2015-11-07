@@ -22,7 +22,7 @@
     "babel-preset-es2015": "^6.1.2",
     "babel-preset-react": "^6.1.2",
     "expose-loader": "^0.7.1",
-    "react-inline": "^0.8.0",
+    "react-inline": "^0.8.1",
     "webpack": "^1.8.11"
   }
 }

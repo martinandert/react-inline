@@ -9,6 +9,11 @@ Tags:
 - [Internal]
 - [Polish]
 
+## 0.8.1 (November 7, 2015)
+
+- **Bug Fix**
+  - Make babel-runtime a dependency
+
 ## 0.8.0 (November 7, 2015)
 
 - **New Feature**
