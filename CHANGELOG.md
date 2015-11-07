@@ -9,7 +9,7 @@ Tags:
 - [Internal]
 - [Polish]
 
-## Unreleased
+## 0.8.0 (November 7, 2015)
 
 - **New Feature**
   - The CLI now uses Babel v6 for the additional transformation step
