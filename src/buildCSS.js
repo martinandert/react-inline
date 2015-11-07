@@ -1,4 +1,5 @@
 import postcss from 'postcss';
+import extend from 'object-assign';
 import autoprefixer from 'autoprefixer';
 import CleanCSS from 'clean-css';
 import foreach from 'foreach';
@@ -8,7 +9,7 @@ export default function(stylesheets, options) {
   let css = '';
 
   foreach(stylesheets, (stylesheet, name) => {
-    let cssOptions = Object.assign({}, options);
+    let cssOptions = extend({}, options);
     cssOptions.prefixes = [options.filename, name];
 
     css += transformSpecificationIntoCSS(stylesheet, cssOptions);

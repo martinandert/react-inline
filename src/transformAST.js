@@ -1,4 +1,5 @@
 import assert from 'assert';
+import extend from 'object-assign';
 import { visit, types } from 'recast';
 
 import transformObjectExpressionIntoStyleSheetObject from './transformObjectExpressionIntoStyleSheetObject';
@@ -33,7 +34,7 @@ export default function(ast, stylesheets, options) {
 
       stylesheets[sheetId] = sheet;
 
-      let gcnOptions = Object.assign({}, options);
+      let gcnOptions = extend({}, options);
       gcnOptions.prefixes = [options.filename, sheetId];
 
       let properties = [];
