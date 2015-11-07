@@ -9,6 +9,15 @@ Tags:
 - [Internal]
 - [Polish]
 
+## Unreleased
+
+- **New Feature**
+  - The CLI now uses Babel v6 for the additional transformation step
+- **Breaking Change**
+  - Remove the `--babel-stage` CLI option, use a `.babelrc` file to configure the additional Babel transformation step
+- **Internal**
+  - Transpile code with Babel v6
+
 ## 0.7.0 (November 6, 2015)
 
 - **New Feature**

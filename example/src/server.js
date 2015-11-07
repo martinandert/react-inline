@@ -6,8 +6,9 @@ import logger       from 'morgan';
 import errorHandler from 'errorhandler';
 import {normalize}  from 'path';
 
-import React  from 'react';
-import App    from './components/App';
+import React    from 'react';
+import ReactDOM from 'react-dom/server';
+import App      from './components/App';
 
 const app         = express();
 const port        = process.env.PORT || 3000;
@@ -23,7 +24,7 @@ app.use(express.static(publicPath, { index: false }));
 app.use(logger(live ? 'combined' : 'dev'));
 
 app.get('/', (req, res, next) => {
-  const html = React.renderToString(<App />);
+  const html = ReactDOM.renderToString(<App />);
   res.render('layout', { html });
 });
 

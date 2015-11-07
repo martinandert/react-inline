@@ -222,16 +222,16 @@ console.log(result.css);  // => '.my-style {\n  border: solid 1px red; ...'
 
 Available options to pass as second argument:
 
-| Option               | Default     | Description                                                                                                                                                                                                                                                                                                                         |
-|----------------------|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `filename`           | `"unknown"` | The name of the file for the source to transform. This value is used (in revised form) as a prefix when generating CSS class names.                                                                                                                                                                                                 |
-| `vendorPrefixes`     | `false`     | If truthy, the generated CSS is run through [autoprefixer](https://www.npmjs.com/package/autoprefixer) to add vendor prefixes to the rules. If set to an object, it is passed to autoprefixer as `options` argument.                                                                                                                |
-| `minify`             | `false`     | Set to `true` to enable minification of the generated CSS. The popular [clean-css](https://www.npmjs.com/package/clean-css) package is used for this.                                                                                                                                                                               |
-| `compressClassNames` | `false`     | Set to `true` to shorten/obfuscate generated CSS class names. A class name like `"my_file-my_styles_var-my_name"` will so be converted to, e.g., `"_bf"`.                                                                                                                                                                             |
-| `mediaMap`           | `{}`        | This allows you to define media query shortcuts which are expanded on building the CSS. Example: using `{ phone: "media only screen and (max-width: 640px)" }` as value for this option and a stylesheet spec having `"@phone"` as a key, that key will be translated to `@media only screen and (max-width: 640px)` in the final CSS. |
-| `context`            | `null`      | If set to an object, each identifier found on the right-hand side of a style rule is substituted with the corresponding property value of this object.
+| Option               | Default     | Description                                                                                                                                                                                                                                                                                                                               |
+|----------------------|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `filename`           | `"unknown"` | The name of the file for the source to transform. This value is used (in revised form) as a prefix when generating CSS class names.                                                                                                                                                                                                       |
+| `vendorPrefixes`     | `false`     | If truthy, the generated CSS is run through [autoprefixer](https://www.npmjs.com/package/autoprefixer) to add vendor prefixes to the rules. If set to an object, it is passed to autoprefixer as `options` argument.                                                                                                                      |
+| `minify`             | `false`     | Set to `true` to enable minification of the generated CSS. The popular [clean-css](https://www.npmjs.com/package/clean-css) package is used for this.                                                                                                                                                                                     |
+| `compressClassNames` | `false`     | Set to `true` to shorten/obfuscate generated CSS class names. A class name like `"my_file-my_styles_var-my_name"` will so be converted to, e.g., `"_bf"`.                                                                                                                                                                                 |
+| `mediaMap`           | `{}`        | This allows you to define media query shortcuts which are expanded on building the CSS. Example: using `{ phone: "media only screen and (max-width: 640px)" }` as value for this option and a stylesheet spec having `"@phone"` as a key, that key will be translated to `@media only screen and (max-width: 640px)` in the final CSS.    |
+| `context`            | `null`      | If set to an object, each identifier found on the right-hand side of a style rule is substituted with the corresponding property value of this object.                                                                                                                                                                                    |
 | `cacheDir`           | `null`      | If set to a string value, e.g. `"tmp/cache/"`, the class name cache will be persisted in a file in this directory. Otherwise, an in-memory cache is used.                                                                                                                                                                                 |
-| `sourceMapName`           | `null`      | If set to a string value, a source map will be generated with the given name and returned as `map`, e.g. `result.map` in the example above.                                                                                                                                                                                 |
+| `sourceMapName`      | `null`      | If set to a string value, a source map will be generated with the given name and returned as `map`, e.g. `result.map` in the example above.                                                                                                                                                                                               |
 
 #### `object Extractor.transformFile(string filename, [object options], function callback)`
 
@@ -311,8 +311,7 @@ Options:
   -t, --context <name=path>                Add context item (require'd from path) as name
   -b, --bundle <file>                      Bundle all generated CSS into file (default: "bundle.css")
   -B, --no-bundle                          Disable bundling CSS
-  -a, --babelize                           Add a Babel transformation step
-  -s, --babel-stage <stage>                Set Babel's experimental proposal stage (default: 2)
+  -a, --babelize                           Add a Babel transformation step (configure it with a .babelrc)
 ```
 
 In a single sentence: the command finds modules with the given module identifiers in the source directory and places a transformed copy of each module into the output directory.
@@ -518,12 +517,6 @@ Install via npm:
 
 ```bash
 % npm install react-inline --save-dev
-```
-
-If you use React Inline's CLI to transform your styles and set the `--babelize` option, you need to install the [babel-runtime](https://www.npmjs.com/package/babel-runtime) package as an additional dependency:
-
-```bash
-% npm install babel-runtime --save
 ```
 
 

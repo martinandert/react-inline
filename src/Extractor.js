@@ -1,6 +1,12 @@
-export { default as transformObjectExpressionIntoStyleSheetObject } from './transformObjectExpressionIntoStyleSheetObject';
-export { default as transformStyleSheetObjectIntoSpecification } from './transformStyleSheetObjectIntoSpecification';
-export { default as transformSpecificationIntoCSS } from './transformSpecificationIntoCSS';
+import transformObjectExpressionIntoStyleSheetObject from './transformObjectExpressionIntoStyleSheetObject';
+import transformStyleSheetObjectIntoSpecification from './transformStyleSheetObjectIntoSpecification';
+import transformSpecificationIntoCSS from './transformSpecificationIntoCSS';
+
+export {
+  transformObjectExpressionIntoStyleSheetObject,
+  transformStyleSheetObjectIntoSpecification,
+  transformSpecificationIntoCSS
+};
 
 import fs from 'fs';
 import { parse, print } from 'recast';
@@ -60,4 +66,13 @@ export function transformFileSync(filename, options = {}) {
   options.filename = filename;
 
   return transform(fs.readFileSync(filename), options);
+}
+
+export default {
+  transform,
+  transformFile,
+  transformFileSync,
+  transformObjectExpressionIntoStyleSheetObject,
+  transformStyleSheetObjectIntoSpecification,
+  transformSpecificationIntoCSS
 }

@@ -1,0 +1,13 @@
+{
+  "presets": [
+    "es2015",
+    "stage-1"
+  ],
+  "env": {
+    "build": {
+      "plugins": [
+        "transform-runtime"
+      ]
+    }
+  }
+}

@@ -3,7 +3,7 @@ import fs     from 'fs';
 import glob   from 'glob';
 import mkdirp from 'mkdirp';
 
-function bundle(sourceDir, filename = 'bundle.css', options = {}) {
+export function bundle(sourceDir, filename = 'bundle.css', options = {}) {
   const bundleFile = path.join(sourceDir, filename);
 
   const globOptions = { cwd: sourceDir, realpath: true, ignore: bundleFile };

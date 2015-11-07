@@ -6,9 +6,11 @@ import util from 'util';
 import rimraf from 'rimraf';
 import recast from 'recast';
 
-var StyleSheet  = require('../');
-var Bundler     = require('../bundler');
-var Extractor   = require('../extractor');
+import StyleSheet from '../';
+import Bundler from '../bundler';
+import Extractor from '../extractor';
+
+import { clearCache } from '../lib/compressClassName';
 
 describe('StyleSheet.create', () => {
   it('returns its first argument', () => {
@@ -201,8 +203,6 @@ describe('Extractor.transform', () => {
   });
 
   describe('with compressClassNames option set to true', () => {
-    var {clearCache} = require('../lib/compressClassName');
-
     beforeEach(() => {
       clearCache({});
       clearCache({ cacheDir: os.tmpdir() });

@@ -1,5 +1,5 @@
 import postcss from 'postcss';
-import autoprefixer from 'autoprefixer-core';
+import autoprefixer from 'autoprefixer';
 import CleanCSS from 'clean-css';
 import foreach from 'foreach';
 import transformSpecificationIntoCSS from './transformSpecificationIntoCSS';

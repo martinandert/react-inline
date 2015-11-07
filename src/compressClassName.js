@@ -11,7 +11,7 @@ function getCache(options) {
   }
 }
 
-function clearCache(options) {
+export function clearCache(options) {
   getCache(options).clear();
 }
 
@@ -22,5 +22,3 @@ export default function compressClassName(className, options) {
     return '_' + keys.length.toString(36).split('').reverse().join('');
   });
 }
-
-compressClassName.clearCache = clearCache;

@@ -29,8 +29,7 @@ require('commoner')
   .option('-t, --context <name=path>', 'Add context item (require\'d from path) as name', collectContextMap, {})
   .option('-b, --bundle <file>', 'Bundle all generated CSS into file (default: "bundle.css")', 'bundle.css')
   .option('-B, --no-bundle', 'Disable bundling CSS')
-  .option('-a, --babelize', 'Add a Babel transformation step')
-  .option('-s, --babel-stage <stage>', 'Set Babel\'s experimental proposal stage (default: 2)', 2)
+  .option('-a, --babelize', 'Add a Babel transformation step (configure it with a .babelrc)')
   .resolve(
     function(id) {
       var context = this;
@@ -63,9 +62,7 @@ require('commoner')
 
       if (options.babelize) {
         var babelOptions = {
-          ast: false,
-          optional: ['runtime'],
-          stage: options.babelStage
+          ast: false, filename: extractOptions.filename
         };
 
         result.code = babel.transform(result.code, babelOptions).code;
@@ -89,4 +86,3 @@ require('commoner')
       }
     }
   );
-
