@@ -9,6 +9,11 @@ Tags:
 - [Internal]
 - [Polish]
 
+## 0.8.2 (December 4, 2015)
+
+- **Bug Fix**
+  - Disable babel-plugin-transform-runtime due to https://phabricator.babeljs.io/T6644
+
 ## 0.8.1 (November 7, 2015)
 
 - **Bug Fix**
