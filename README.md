@@ -1,3 +1,7 @@
+**Note:** Thanks to the new possibilities of Babel v6+, there's also my [babel-plugin-css-in-js](https://github.com/martinandert/babel-plugin-css-in-js) project, which works exactly the same but doesn't require a separate CLI/API. If you're using Babel for code transpilation, just put babel-plugin-css-in-js in your build pipeline.
+
+--
+
 # React Inline
 
 [![build status](https://img.shields.io/travis/martinandert/react-inline.svg?style=flat-square)](https://travis-ci.org/martinandert/react-inline)
@@ -7,7 +11,7 @@
 
 Transform inline styles defined in JavaScript modules into static CSS code and class names so they become available to, e.g. the `className` prop of React elements.
 
-**Note:** Since v0.5, React Inline is not tied to any specific user interface library, so you don't have to use React to utilize this package. Using it for React components is just a logical consequence.
+Note: Since v0.5, React Inline is not tied to any specific user interface library, so you don't have to use React to utilize this package. Using it for React components is just a logical consequence.
 
 If you're impatient, [visit the live demo](http://react-inline-demo.martinandert.com/). The source code for it can be found [in the example directory](example/).
 
