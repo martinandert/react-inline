@@ -6,7 +6,6 @@
   "env": {
     "build": {
       "plugins": [
-        "transform-runtime"
       ]
     },
     "test": {
