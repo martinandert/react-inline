@@ -13,7 +13,7 @@ Transform inline styles defined in JavaScript modules into static CSS code and c
 
 Note: Since v0.5, React Inline is not tied to any specific user interface library, so you don't have to use React to utilize this package. Using it for React components is just a logical consequence.
 
-If you're impatient, [visit the live demo](http://react-inline-demo.martinandert.com/). The source code for it can be found [in the example directory](example/).
+If you're impatient, [visit the live demo](http://react-inline-demo.andert.io/). The source code for it can be found [in the example directory](example/).
 
 Let's dive right into some code. Given the following button component ...
 
